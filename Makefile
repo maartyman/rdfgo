@@ -2,6 +2,9 @@ file ?= ./..
 test-file ?= ./...
 
 test:
+	go test $(test-file)
+
+test-verbose:
 	go test $(test-file) -v
 
 test-cover:
@@ -15,3 +18,5 @@ lint:
 
 fmt:
 	gofmt -s -w .
+
+pre-commit: fmt lint test
