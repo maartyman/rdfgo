@@ -1,7 +1,7 @@
 package rdfgo
 
 import (
-	"rdfgo/interfaces"
+	"github.com/maartyman/rdfgo/interfaces"
 )
 
 const (

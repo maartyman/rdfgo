@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"rdfgo/interfaces"
-	. "rdfgo/lib/data_model"
-	. "rdfgo/lib/stream"
+	"github.com/maartyman/rdfgo/interfaces"
+	. "github.com/maartyman/rdfgo/lib/data_model"
+	. "github.com/maartyman/rdfgo/lib/stream"
 )
 
 func main() {

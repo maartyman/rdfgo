@@ -2,7 +2,7 @@ package rdfgo
 
 import (
 	"fmt"
-	"rdfgo/interfaces"
+	"github.com/maartyman/rdfgo/interfaces"
 )
 
 var blankNodeCounter = 0

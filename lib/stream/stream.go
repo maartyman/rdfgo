@@ -1,6 +1,6 @@
 package rdfgo
 
-import "rdfgo/interfaces"
+import "github.com/maartyman/rdfgo/interfaces"
 
 type Stream interfaces.IStream
 

@@ -3,7 +3,7 @@ package rdfgo
 import (
 	"errors"
 	"fmt"
-	"rdfgo/interfaces"
+	"github.com/maartyman/rdfgo/interfaces"
 )
 
 const QuadValue = ""

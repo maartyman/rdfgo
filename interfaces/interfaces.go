@@ -1,8 +1,8 @@
 package interfaces
 
-import datamodel "rdfgo/interfaces/data_model"
-import dataset "rdfgo/interfaces/dataset"
-import stream "rdfgo/interfaces/stream"
+import datamodel "github.com/maartyman/rdfgo/interfaces/data_model"
+import dataset "github.com/maartyman/rdfgo/interfaces/dataset"
+import stream "github.com/maartyman/rdfgo/interfaces/stream"
 
 type IBlankNode = datamodel.IBlankNode
 type IDataFactory = datamodel.IDataFactory

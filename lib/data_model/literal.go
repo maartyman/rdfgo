@@ -2,7 +2,7 @@ package rdfgo
 
 import (
 	"fmt"
-	"rdfgo/interfaces"
+	"github.com/maartyman/rdfgo/interfaces"
 )
 
 type Literal struct {

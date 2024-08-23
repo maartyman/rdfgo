@@ -1,8 +1,8 @@
 package interfaces
 
 import (
-	. "rdfgo/interfaces/data_model"
-	. "rdfgo/interfaces/stream"
+	. "github.com/maartyman/rdfgo/interfaces/data_model"
+	. "github.com/maartyman/rdfgo/interfaces/stream"
 )
 
 type IDataset interface {

@@ -1,8 +1,8 @@
 package rdfgo
 
 import (
-	"rdfgo/interfaces"
-	. "rdfgo/lib/data_model"
+	"github.com/maartyman/rdfgo/interfaces"
+	. "github.com/maartyman/rdfgo/lib/data_model"
 	"sync"
 )
 

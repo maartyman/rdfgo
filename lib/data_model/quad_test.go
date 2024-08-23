@@ -2,7 +2,7 @@ package rdfgo
 
 import (
 	"errors"
-	"rdfgo/interfaces"
+	"github.com/maartyman/rdfgo/interfaces"
 	"testing"
 )
 

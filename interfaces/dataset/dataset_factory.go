@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	. "rdfgo/interfaces/data_model"
+	. "github.com/maartyman/rdfgo/interfaces/data_model"
 )
 
 type IDatasetFactory interface {
