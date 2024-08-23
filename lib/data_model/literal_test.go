@@ -66,7 +66,11 @@ func TestLiteralCreation(t *testing.T) {
 				t.Errorf("Literal language should be %s, but got %s", tt.expectedLang, tt.literal.GetLanguage())
 			}
 			if !tt.literal.GetDatatype().Equals(tt.expectedDatatype) {
-				t.Errorf("Literal datatype should equal <%s>, but got %s", tt.expectedDatatype, tt.literal.GetDatatype().ToString())
+				t.Errorf(
+					"Literal datatype should equal <%s>, but got %s",
+					tt.expectedDatatype,
+					tt.literal.GetDatatype().ToString(),
+				)
 			}
 		})
 	}

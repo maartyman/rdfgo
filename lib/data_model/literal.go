@@ -50,7 +50,9 @@ func (l *Literal) Equals(other interfaces.ITerm) bool {
 	if !ok || interfaces.LiteralType != other.GetType() {
 		return false
 	}
-	return l.value == literal.GetValue() && l.language == literal.GetLanguage() && ((l.datatype == nil && literal.GetDatatype() == nil) || (l.datatype != nil && l.datatype.Equals(literal.GetDatatype())))
+	return l.value == literal.GetValue() && l.language == literal.GetLanguage() &&
+		((l.datatype == nil && literal.GetDatatype() == nil) ||
+			(l.datatype != nil && l.datatype.Equals(literal.GetDatatype())))
 }
 
 func (l *Literal) GetValue() string {

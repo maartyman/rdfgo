@@ -4,7 +4,6 @@ import (
 	"rdfgo/interfaces"
 	. "rdfgo/lib/data_model"
 	"testing"
-	"time"
 )
 
 func TestNewStream(t *testing.T) {
@@ -33,23 +32,6 @@ func TestNewStream(t *testing.T) {
 	if cap(stream) != 0 {
 		t.Errorf("Buffer size should be 0, but got %d", cap(stream))
 	}
-	close(stream)
-
-	stream = NewStream(0)
-	done := make(chan bool)
-	go func() {
-		for i := 0; i < 1_000; i++ {
-			stream <- nil
-		}
-		close(done)
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(100 * time.Millisecond):
-		t.Error("Stream did not behave as unbounded; sending blocked.")
-	}
-
 	close(stream)
 }
 

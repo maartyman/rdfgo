@@ -39,6 +39,11 @@ func (df *DataFactory) DefaultGraph() interfaces.IDefaultGraph {
 	return NewDefaultGraph()
 }
 
-func (df *DataFactory) Quad(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) (interfaces.IQuad, error) {
+func (df *DataFactory) Quad(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) (interfaces.IQuad, error) {
 	return NewQuad(subject, predicate, object, graph)
 }

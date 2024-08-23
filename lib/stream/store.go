@@ -1,7 +1,6 @@
 package rdfgo
 
 import (
-	"fmt"
 	"rdfgo/interfaces"
 	. "rdfgo/lib/data_model"
 	"sync"
@@ -34,7 +33,12 @@ func (s *Store) Size() int {
 	return s.size
 }
 
-func getHashes(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) []string {
+func getHashes(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) []string {
 	return []string{
 		subject.ToString() + ",,,",
 		"," + predicate.ToString() + ",,",
@@ -44,7 +48,12 @@ func getHashes(subject interfaces.ITerm, predicate interfaces.ITerm, object inte
 	}
 }
 
-func convertVariablesToNil(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) (interfaces.ITerm, interfaces.ITerm, interfaces.ITerm, interfaces.ITerm) {
+func convertVariablesToNil(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) (interfaces.ITerm, interfaces.ITerm, interfaces.ITerm, interfaces.ITerm) {
 	if subject != nil && subject.GetType() == interfaces.VariableType {
 		subject = nil
 	}
@@ -67,7 +76,12 @@ func (s *Store) Has(quad interfaces.IQuad) bool {
 	return exists
 }
 
-func (s *Store) AddQuadFromTerms(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) bool {
+func (s *Store) AddQuadFromTerms(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) bool {
 	if subject == nil || predicate == nil || object == nil {
 		return false
 	}
@@ -140,7 +154,12 @@ func (s *Store) RemoveQuad(quad interfaces.IQuad) {
 	s.mux.Unlock()
 }
 
-func (s *Store) RemoveMatches(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) {
+func (s *Store) RemoveMatches(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) {
 	for quad := range s.Match(subject, predicate, object, graph) {
 		s.RemoveQuad(quad)
 	}
@@ -174,7 +193,12 @@ func (s *Store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[",,,"+graph.ToString()]
 }
 
-func (s *Store) Match(subject interfaces.ITerm, predicate interfaces.ITerm, object interfaces.ITerm, graph interfaces.ITerm) interfaces.IStream {
+func (s *Store) Match(
+	subject interfaces.ITerm,
+	predicate interfaces.ITerm,
+	object interfaces.ITerm,
+	graph interfaces.ITerm,
+) interfaces.IStream {
 	subject, predicate, object, graph = convertVariablesToNil(subject, predicate, object, graph)
 	quadStream := make(interfaces.IStream, 10)
 
@@ -249,7 +273,6 @@ func (s *Store) Match(subject interfaces.ITerm, predicate interfaces.ITerm, obje
 				}
 				close(quadStream)
 			}()
-			break
 		case 1:
 			go func() {
 				for _, quad := range predicateMatches {
@@ -261,7 +284,6 @@ func (s *Store) Match(subject interfaces.ITerm, predicate interfaces.ITerm, obje
 				}
 				close(quadStream)
 			}()
-			break
 		case 2:
 			go func() {
 				for _, quad := range objectMatches {
@@ -273,9 +295,7 @@ func (s *Store) Match(subject interfaces.ITerm, predicate interfaces.ITerm, obje
 				}
 				close(quadStream)
 			}()
-			break
 		case 3:
-			fmt.Sprintf("graphMatches: %v", graphMatches)
 			go func() {
 				for _, quad := range graphMatches {
 					if (subject == nil || quad.GetSubject().Equals(subject)) &&
@@ -286,7 +306,6 @@ func (s *Store) Match(subject interfaces.ITerm, predicate interfaces.ITerm, obje
 				}
 				close(quadStream)
 			}()
-			break
 		}
 	}
 	return quadStream

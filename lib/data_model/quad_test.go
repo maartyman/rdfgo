@@ -6,12 +6,18 @@ import (
 	"testing"
 )
 
-func utilTermIsWrong(t *testing.T, returnedError error, q interfaces.IQuad, expectedError error, testErrorMessage string) {
+func utilTermIsWrong(
+	t *testing.T,
+	returnedError error,
+	q interfaces.IQuad,
+	expectedError error,
+	testErrorMessage string,
+) {
 	if returnedError == nil || !errors.Is(returnedError, expectedError) {
 		if errors.Is(returnedError, expectedError) {
-			t.Errorf(testErrorMessage + "\n" + returnedError.Error() + "\n" + expectedError.Error() + "\n" + "true")
+			t.Errorf("%s\n%s\n%s\ntrue", testErrorMessage, returnedError.Error(), expectedError.Error())
 		} else {
-			t.Errorf(testErrorMessage + "\n" + returnedError.Error() + "\n" + expectedError.Error() + "\n" + "false")
+			t.Errorf("%s\n%s\n%s\nfalse", testErrorMessage, returnedError.Error(), expectedError.Error())
 		}
 	}
 	if q != nil {

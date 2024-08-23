@@ -26,17 +26,20 @@ func TestDataFactory_BlankNode(t *testing.T) {
 
 func TestDataFactory_SimpleLiteral(t *testing.T) {
 	df := NewDataFactory()
-	if df.SimpleLiteral("value").Equals(NewLiteral("value", "", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) == false {
+	if !df.SimpleLiteral("value").
+		Equals(NewLiteral("value", "", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) {
 		t.Error("Data factory SimpleLiteral should return a Literal with the given value and default datatype")
 	}
 }
 
 func TestDataFactory_Literal(t *testing.T) {
 	df := NewDataFactory()
-	if df.Literal("value", "en", nil).Equals(NewLiteral("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) == false {
+	if !df.Literal("value", "en", nil).
+		Equals(NewLiteral("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) {
 		t.Error("Data factory Literal should return a Literal with the given value, language and default datatype")
 	}
-	if df.Literal("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string")).Equals(NewLiteral("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) == false {
+	if !df.Literal("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string")).
+		Equals(NewLiteral("value", "en", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))) {
 		t.Error("Data factory Literal should return a Literal with the given value, language and datatype")
 	}
 }
