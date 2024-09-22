@@ -39,6 +39,16 @@ func getHashes(
 	object interfaces.ITerm,
 	graph interfaces.ITerm,
 ) []string {
+	//TODO change to multiple return values
+	if graph.GetType() == interfaces.DefaultGraphType {
+		return []string{
+			subject.ToString() + ",,,",
+			"," + predicate.ToString() + ",,",
+			",," + object.ToString() + ",",
+			",,," + DefaultGraphValue,
+			subject.ToString() + "," + predicate.ToString() + "," + object.ToString() + "," + DefaultGraphValue,
+		}
+	}
 	return []string{
 		subject.ToString() + ",,,",
 		"," + predicate.ToString() + ",,",
@@ -190,6 +200,9 @@ func (s *Store) matchObject(object interfaces.ITerm) []interfaces.IQuad {
 }
 
 func (s *Store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
+	if graph.GetType() == interfaces.DefaultGraphType {
+		return s.entries[",,,"+DefaultGraphValue]
+	}
 	return s.entries[",,,"+graph.ToString()]
 }
 

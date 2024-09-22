@@ -47,7 +47,7 @@ func TestDefaultGraph_EqualsNil(t *testing.T) {
 
 func TestDefaultGraph_ToString(t *testing.T) {
 	dg1 := NewDefaultGraph()
-	if dg1.ToString() != DefaultGraphValue {
+	if dg1.ToString() != DefaultGraphString {
 		t.Errorf("DefaultGraph to string should equal an empty string")
 	}
 }

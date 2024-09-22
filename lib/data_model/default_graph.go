@@ -5,6 +5,7 @@ import (
 )
 
 const DefaultGraphValue = "rdfgo-DefaultGraph"
+const DefaultGraphString = "<>"
 
 type DefaultGraph struct{}
 
@@ -16,7 +17,7 @@ func (d *DefaultGraph) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
-	return interfaces.DefaultGraphType == other.GetType() && DefaultGraphValue == other.GetValue()
+	return interfaces.DefaultGraphType == other.GetType()
 }
 
 func (d *DefaultGraph) GetType() interfaces.TermType {
@@ -28,5 +29,5 @@ func (d *DefaultGraph) GetValue() string {
 }
 
 func (d *DefaultGraph) ToString() string {
-	return DefaultGraphValue
+	return DefaultGraphString
 }
