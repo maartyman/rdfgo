@@ -608,7 +608,7 @@ func TestStore_Match(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			count := Stream(tt.store.Match(tt.subject, tt.predicate, tt.object, tt.graph)).Count()
 			if count != tt.expected {
-				t.Errorf("%s, but got %d", tt.message, count)
+				t.Errorf("%s: %s, but got %d", tt.name, tt.message, count)
 				for quad := range tt.store.Match(tt.subject, tt.predicate, tt.object, tt.graph) {
 					println(quad.ToString())
 				}

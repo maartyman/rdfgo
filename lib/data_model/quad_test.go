@@ -21,7 +21,7 @@ func utilTermIsWrong(
 		}
 	}
 	if q != nil {
-		t.Errorf("Quad should be nil if error")
+		t.Errorf("Quad should be nil if error: " + testErrorMessage)
 	}
 }
 
