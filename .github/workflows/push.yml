@@ -24,3 +24,15 @@ jobs:
           go-version: stable
       - name: Run tests
         run: make test
+
+  coveralls:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install goveralls
+        run: go install github.com/mattn/goveralls@latest
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.github_token }}
+        run: goveralls -coverprofile=covprofile -service=github
