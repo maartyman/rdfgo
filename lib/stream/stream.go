@@ -11,6 +11,10 @@ func NewStream(size ...int) Stream {
 	return make(Stream)
 }
 
+func (s Stream) ToIStream() interfaces.IStream {
+	return interfaces.IStream(s)
+}
+
 func (s Stream) ToArray() []interfaces.IQuad {
 	var quadArray []interfaces.IQuad
 	for quad := range s {

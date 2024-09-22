@@ -35,6 +35,14 @@ func TestNewStream(t *testing.T) {
 	close(stream)
 }
 
+func TestStream_ToIStream(t *testing.T) {
+	stream := NewStream()
+	iStream := stream.ToIStream()
+	if iStream == nil {
+		t.Error("IStream should not be nil")
+	}
+}
+
 func TestStream_ToArray(t *testing.T) {
 	stream := NewStream()
 	quad, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewDefaultGraph())
