@@ -12,5 +12,11 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Build
+      - name: Set up linter
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: 'v6.1.0'
+          skip-cache: true
+
+      - name: Run tests
         run: make pre-commit
