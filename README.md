@@ -1,5 +1,8 @@
 # rdfgo
 
+[![Coverage Status](https://coveralls.io/repos/github/maartyman/rdfgo/badge.svg)](https://coveralls.io/github/maartyman/rdfgo)
+![CI status](https://github.com/maartyman/rdfgo/actions/workflows/CI.yml/badge.svg)
+
 rdfgo proposes interfaces to work with rdf data based on the [rdfjs](https://rdf.js.org/) spec.
 This can be found in the interfaces folder `github.com/maartyman/rdfgo/interfaces`.
 
