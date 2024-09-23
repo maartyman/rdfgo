@@ -84,8 +84,11 @@ bump-version-patch:
 	@git reset
 	@git add CHANGELOG.md
 	@git commit -am "chore(release): bump to $(NEW_VERSION)"
-	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md](https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin HEAD
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md for changes."
 	@git push origin $(NEW_VERSION)
+	# Create GitHub release with the tag and changelog
+	@gh release create $(NEW_VERSION) --title "Release $(NEW_VERSION)" --notes "$$(cat CHANGELOG.md)"
 
 bump-version-minor:
 	# Bump minor version
@@ -95,8 +98,11 @@ bump-version-minor:
 	@git reset
 	@git add CHANGELOG.md
 	@git commit -am "chore(release): bump to $(NEW_VERSION)"
-	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md](https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin HEAD
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md for changes."
 	@git push origin $(NEW_VERSION)
+	# Create GitHub release with the tag and changelog
+	@gh release create $(NEW_VERSION) --title "Release $(NEW_VERSION)" --notes "$$(cat CHANGELOG.md)"
 
 bump-version-major:
 	# Bump major version and update go.mod
@@ -110,8 +116,11 @@ bump-version-major:
 	# Update imports for the new major version
 	@find . -name '*.go' -type f -exec sed -i'' -e 's/\(.*\)\/v$(MAJOR)/\1\/v$(shell echo $(MAJOR) + 1 | bc)/g' {} \;
 	@git commit -am "chore(release): bump to $(NEW_VERSION) and update go.mod for v$(shell echo $(MAJOR) + 1 | bc)"
-	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md](https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin HEAD
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md for changes."
 	@git push origin $(NEW_VERSION)
+	# Create GitHub release with the tag and changelog
+	@gh release create $(NEW_VERSION) --title "Release $(NEW_VERSION)" --notes "$$(cat CHANGELOG.md)"
 
 setup-project:
 	# Make all files in .githooks executable
@@ -120,4 +129,3 @@ setup-project:
 	@git config core.hooksPath .githooks
 	# Install Dependencies
 	@go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
-
