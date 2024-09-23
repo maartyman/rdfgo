@@ -76,7 +76,12 @@ fmt:
 
 pre-commit: fmt lint test-race
 
-bump-version-patch:
+setup-for-release:
+	@git checkout master
+	@git fetch
+	@git pull
+
+bump-version-patch: setup-for-release
 	# Bump patch version
 	$(eval NEW_VERSION := v$(MAJOR).$(MINOR).$(shell echo $(PATCH) + 1 | bc))
 	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
@@ -96,7 +101,7 @@ bump-version-patch:
 	# Create GitHub release
 	@gh release create $(NEW_VERSION) --title "Release $(NEW_VERSION)" --notes "$$(cat CHANGELOG.md)"
 
-bump-version-minor:
+bump-version-minor: setup-for-release
 	# Bump minor version
 	$(eval NEW_VERSION := v$(MAJOR).$(shell echo $(MINOR) + 1 | bc).0)
 	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
@@ -116,7 +121,7 @@ bump-version-minor:
 	# Create GitHub release
 	@gh release create $(NEW_VERSION) --title "Release $(NEW_VERSION)" --notes "$$(cat CHANGELOG.md)"
 
-bump-version-major:
+bump-version-major: setup-for-release
 	# Bump major version and update go.mod
 	$(eval NEW_VERSION := v$(shell echo $(MAJOR) + 1 | bc).0.0)
 	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
