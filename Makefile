@@ -6,12 +6,12 @@ IGNORE_FILES = cmd/
 
 test:
 	# Run tests
-	@go test $(test-file) -coverprofile=c.out
+	@go test $(test-file) -covermode atomic -coverprofile=covprofile
 	@for pattern in $(IGNORE_FILES); do \
-		grep -v -E $$pattern c.out > tmp_filtered.out; \
-		mv tmp_filtered.out c.out; \
+		grep -v -E $$pattern covprofile > tmp_filtered.out; \
+		mv tmp_filtered.out covprofile; \
 	done;
-	@coverage=$$(go tool cover -func=c.out | grep total | awk '{print $$3}' | sed 's/%//'); \
+	@coverage=$$(go tool cover -func=covprofile | grep total | awk '{print $$3}' | sed 's/%//'); \
 	if [ $${coverage%.*} -ne 100 ]; then \
 		echo "Total test coverage is not 100%: $$coverage%"; \
 		exit 1; \
@@ -21,12 +21,12 @@ test:
 
 test-verbose:
 	# Run tests verbose
-	@go test $(test-file) -v -coverprofile=c.out
+	@go test $(test-file) -v -covermode atomic -coverprofile=covprofile
 	@for pattern in $(IGNORE_FILES); do \
-		grep -v -E $$pattern c.out > tmp_filtered.out; \
-		mv tmp_filtered.out c.out; \
+		grep -v -E $$pattern covprofile > tmp_filtered.out; \
+		mv tmp_filtered.out covprofile; \
 	done;
-	@coverage=$$(go tool cover -func=c.out | grep total | awk '{print $$3}' | sed 's/%//'); \
+	@coverage=$$(go tool cover -func=covprofile | grep total | awk '{print $$3}' | sed 's/%//'); \
 	if [ $${coverage%.*} -ne 100 ]; then \
 		echo "Total test coverage is not 100%: $$coverage%"; \
 		exit 1; \
@@ -36,11 +36,26 @@ test-verbose:
 
 test-cover: test
 	# Generate coverage report
-	@go tool cover -html=c.out
+	@go tool cover -html=covprofile
 
 test-cover-save: test
 	# Generate coverage report
-	@go tool cover -html=c.out -o coverage.html
+	@go tool cover -html=covprofile -o coverage.html
+
+test-race:
+	# Run tests with race detector
+	@go test $(test-file) -race -covermode atomic -coverprofile=covprofile
+	@for pattern in $(IGNORE_FILES); do \
+		grep -v -E $$pattern covprofile > tmp_filtered.out; \
+		mv tmp_filtered.out covprofile; \
+	done;
+	@coverage=$$(go tool cover -func=covprofile | grep total | awk '{print $$3}' | sed 's/%//'); \
+	if [ $${coverage%.*} -ne 100 ]; then \
+		echo "Total test coverage is not 100%: $$coverage%"; \
+		exit 1; \
+	else \
+		echo "Total test coverage is: $$coverage%"; \
+	fi
 
 shorten:
 	# Shorten lines
@@ -54,4 +69,4 @@ fmt:
 	# Format code
 	@gofmt -s -w .
 
-pre-commit: fmt lint test
+pre-commit: fmt lint test-race

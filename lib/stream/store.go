@@ -139,24 +139,21 @@ func (s *Store) RemoveQuad(quad interfaces.IQuad) {
 	for _, hash := range getHashes(quad.GetSubject(), quad.GetPredicate(), quad.GetObject(), quad.GetGraph()) {
 		s.mux.Lock()
 		quadArray := s.entries[hash]
-		s.mux.Unlock()
 		for i := 0; i < len(quadArray); i++ {
 			q := quadArray[i]
 			if q.GetSubject().Equals(quad.GetSubject()) &&
 				q.GetPredicate().Equals(quad.GetPredicate()) &&
 				q.GetObject().Equals(quad.GetObject()) &&
 				q.GetGraph().Equals(quad.GetGraph()) {
-				s.mux.Lock()
 				if len(quadArray) == 1 {
 					delete(s.entries, hash)
-					s.mux.Unlock()
 					break
 				}
 				s.entries[hash] = append(quadArray[:i], quadArray[i+1:]...)
-				s.mux.Unlock()
 				break
 			}
 		}
+		s.mux.Unlock()
 	}
 
 	s.mux.Lock()
