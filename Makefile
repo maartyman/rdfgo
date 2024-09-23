@@ -5,9 +5,9 @@ test-file ?= ./...
 IGNORE_FILES = cmd/
 
 VERSION := $(shell git describe --tags --abbrev=0) # Get the latest tag (e.g., v1.0.0)
-MAJOR := $(shell echo $(VERSION) | cut -d. -f1 | sed 's/v//') # Extract major version
-MINOR := $(shell echo $(VERSION) | cut -d. -f2) # Extract minor version
-PATCH := $(shell echo $(VERSION) | cut -d. -f3) # Extract patch version
+MAJOR := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$2}')
+MINOR := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$3}')
+PATCH := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$4}')
 
 test:
 	# Run tests
@@ -78,31 +78,34 @@ pre-commit: fmt lint test-race
 
 bump-version-patch:
 	# Bump patch version
-	@NEW_VERSION=v$(MAJOR).$(MINOR).$$(($$(echo $(PATCH))+1))
+	$(eval NEW_VERSION := v$(MAJOR).$(MINOR).$(shell echo $(PATCH) + 1 | bc))
+	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
 	@git-chglog -o CHANGELOG.md
-	@git commit -am "chore(release): bump to $$NEW_VERSION"
-	@git tag $$NEW_VERSION
-	@git push origin $$NEW_VERSION
+	@git commit -am "chore(release): bump to $(NEW_VERSION)"
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md]()https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin $(NEW_VERSION)
 
 bump-version-minor:
 	# Bump minor version
-	@NEW_VERSION=v$(MAJOR).$$(($$(echo $(MINOR))+1)).0
+	$(eval NEW_VERSION := v$(MAJOR).$(shell echo $(MINOR) + 1 | bc).0)
+	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
 	@git-chglog -o CHANGELOG.md
-	@git commit -am "chore(release): bump to $$NEW_VERSION"
-	@git tag $$NEW_VERSION
-	@git push origin $$NEW_VERSION
+	@git commit -am "chore(release): bump to $(NEW_VERSION)"
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md]()https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin $(NEW_VERSION)
 
 bump-version-major:
 	# Bump major version and update go.mod
-	@NEW_VERSION=v$$(($$(echo $(MAJOR))+1)).0.0
+	$(eval NEW_VERSION := v$(shell echo $(MAJOR) + 1 | bc).0.0)
+	@echo "Are you sure you want to bump the version to $(NEW_VERSION)? (y/n)" && read ans && [ $${ans:-n} = y ]
 	@git-chglog -o CHANGELOG.md
 	# Update go.mod for new major version
-	@sed -i'' -e 's/^module \(.*\)/module \1\/v$$(($$(echo $(MAJOR))+1))/' go.mod
+	@sed -i'' -e 's/^module \(.*\)/module \1\/v$(shell echo $(MAJOR) + 1 | bc)/' go.mod
 	# Update imports for the new major version
-	@find . -name '*.go' -type f -exec sed -i'' -e 's/\(.*\)\/v$(MAJOR)/\1\/v$$(($$(echo $(MAJOR))+1))/g' {} \;
-	@git commit -am "chore(release): bump to $$NEW_VERSION and update go.mod for v$$(($$(echo $(MAJOR))+1))"
-	@git tag $$NEW_VERSION
-	@git push origin $$NEW_VERSION
+	@find . -name '*.go' -type f -exec sed -i'' -e 's/\(.*\)\/v$(MAJOR)/\1\/v$(shell echo $(MAJOR) + 1 | bc)/g' {} \;
+	@git commit -am "chore(release): bump to $(NEW_VERSION) and update go.mod for v$(shell echo $(MAJOR) + 1 | bc)"
+	@git tag -a $(NEW_VERSION) -m "$(NEW_VERSION)" -m "See [CHANGELOG.md]()https://github.com/maartyman/rdfgo/blob/$(NEW_VERSION)/CHANGELOG.md) for changes."
+	@git push origin $(NEW_VERSION)
 
 setup-project:
 	# Make all files in .githooks executable
