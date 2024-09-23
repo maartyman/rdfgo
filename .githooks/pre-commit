@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Run the make pre-commit before committing:
+make pre-commit
+
+# Check if pre-commit failed:
+if [ $? -ne 0 ]; then
+    echo "pre-commit failed, commit aborted."
+    exit 1
+fi
+
