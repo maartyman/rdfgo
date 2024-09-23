@@ -17,21 +17,30 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - "1.23"
+          - "1.22"
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.22
+          go-version: ${{ matrix.go }}
+      - uses: actions/checkout@v4
       - name: Run tests
         run: make test-race
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: covprofile
+          flag-name: Go-${{ matrix.go }}
+          parallel: true
 
-  coveralls:
+  finish:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Install goveralls
-        run: go install github.com/mattn/goveralls@latest
-      - name: Send coverage
-        env:
-          COVERALLS_TOKEN: ${{ secrets.coveralls_token }}
-        run: goveralls -coverprofile=covprofile -service=github
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
