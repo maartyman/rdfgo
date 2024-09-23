@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Get the commit message
+commit_message=$(cat "$1")
+
+# Define a regular expression for Conventional Commit messages
+conventional_commit_regex="^(feat|fix|chore|docs|style|refactor|test|perf|ci)(\(.+\))?: .{1,}$"
+
+# Check if the commit message matches the Conventional Commit pattern
+if ! echo "$commit_message" | grep -Eq "$conventional_commit_regex"; then
+  echo "Error: Invalid commit message format."
+  echo "The commit message must follow the Conventional Commits format:"
+  echo "type(scope): description"
+  echo ""
+  echo "Valid types: feat, fix, chore, docs, style, refactor, test, perf, ci"
+  echo "Example: feat(parser): add ability to parse arrays"
+  exit 1
+fi

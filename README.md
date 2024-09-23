@@ -184,3 +184,18 @@ func main() {
 - [ ] Add dataset support to the store
 - [ ] Add a parser to the lib portion of the package
 
+## Development
+RDFgo has a makefile that can be used to run tests and build the package.
+To start developing, first run the following command:
+```bash
+make setup-project
+```
+This will enable the git hooks and make sure the commit message follow the Conventional Commits format:
+```
+type(scope): description
+```
+Valid types: feat, fix, chore, docs, style, refactor, test, perf, ci <br>
+Example: `feat(parser): add ability to parse arrays` <br>
+It will also run the tests and linter before committing.
+
+For other commands see the makefile.

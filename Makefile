@@ -70,3 +70,10 @@ fmt:
 	@gofmt -s -w .
 
 pre-commit: fmt lint test-race
+
+setup-project:
+	# Make all files in .githooks executable
+	@chmod +x .githooks/*
+	# Setup git hooks
+	@git config core.hooksPath .githooks
+
