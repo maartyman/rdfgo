@@ -2,7 +2,7 @@ file ?= ./..
 test-file ?= ./...
 
 # Define a list of files to ignore
-IGNORE_FILES = cmd/
+IGNORE_FILES = cmd/ yaccpar nquads.y
 
 VERSION := $(shell git describe --tags --abbrev=0) # Get the latest tag (e.g., v1.0.0)
 MAJOR := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$2}')
@@ -158,3 +158,7 @@ setup-project:
 	@git config core.hooksPath .githooks
 	# Install Dependencies
 	@go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+	@go install golang.org/x/tools/cmd/goyacc@latest
+
+nquads_parser/yacc.go:
+	@cd ./lib/parser/nquads_parser && goyacc -o ./yacc.go ./nquads.y
