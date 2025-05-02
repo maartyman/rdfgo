@@ -39,11 +39,15 @@ test-verbose:
 		echo "Total test coverage is: $$coverage%"; \
 	fi
 
-test-cover: test
+test-cover:
+	# Run tests even if not 100% coverage
+	-@$(MAKE) --no-print-directory test || true
 	# Generate coverage report
 	@go tool cover -html=covprofile
 
-test-cover-save: test
+test-cover-save:
+	# Run tests even if not 100% coverage
+	-@$(MAKE) --no-print-directory test || true
 	# Generate coverage report
 	@go tool cover -html=covprofile -o coverage.html
 
