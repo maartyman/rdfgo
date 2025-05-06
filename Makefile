@@ -78,7 +78,7 @@ fmt:
 	# Format code
 	@gofmt -s -w .
 
-pre-commit: fmt lint test-race
+pre-commit: nquads_parser turtle_parser fmt lint test-race
 
 setup-for-release:
 	@git checkout master
@@ -160,5 +160,8 @@ setup-project:
 	@go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
 	@go install golang.org/x/tools/cmd/goyacc@latest
 
-nquads_parser/yacc.go:
+nquads_parser:
 	@cd ./lib/parser/nquads_parser && goyacc -o ./yacc.go ./nquads.y
+
+turtle_parser:
+	@cd ./lib/parser/turtle_parser && goyacc -o ./yacc.go ./turtle.y

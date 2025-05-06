@@ -42,6 +42,11 @@ func TestParseFile_NQuadsAndNTriples(t *testing.T) {
 			filePath: "test_data/test.nt",
 			wantLen:  1,
 		},
+		{
+			name:     "Valid .ttl file",
+			filePath: "test_data/test.ttl",
+			wantLen:  1,
+		},
 	}
 
 	for _, tc := range tests {
@@ -65,7 +70,7 @@ func TestParseFile_NQuadsAndNTriples(t *testing.T) {
 }
 
 func TestParseFileUnsupportedExtension(t *testing.T) {
-	_, errChan := ParseFile("test.rdf")
+	_, errChan := ParseFile("test_data/test.rdf")
 	err := <-errChan
 	if err == nil || !strings.Contains(err.Error(), "unsupported") {
 		t.Errorf("Expected unsupported file format error, got: %v", err)
@@ -106,6 +111,21 @@ func TestParseWithEmptyMIME(t *testing.T) {
 func TestParseWithNQuadsMIME(t *testing.T) {
 	data := `<s> <p> <o> .`
 	quads, errChan := Parse(strings.NewReader(data), "application/n-quads")
+	var got []interfaces.IQuad
+	for q := range quads {
+		got = append(got, q)
+	}
+	if err := <-errChan; err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if len(got) != 1 {
+		t.Errorf("Expected 1 quad, got %d", len(got))
+	}
+}
+
+func TestParseWithTurtleMIME(t *testing.T) {
+	data := `@base <http://example.com/>. <s> <p> <o> .`
+	quads, errChan := Parse(strings.NewReader(data), "text/turtle")
 	var got []interfaces.IQuad
 	for q := range quads {
 		got = append(got, q)
