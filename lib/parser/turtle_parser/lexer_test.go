@@ -194,7 +194,12 @@ ex<http://example.org/s> ex<http://example.org/p> ex:o .
 			<thing> <http://example.org/p> <target> .
 		`,
 			expectQuads: []interfaces.IQuad{
-				q(NewNamedNode("http://example.org/base/thing"), nn("p"), NewNamedNode("http://example.org/base/target"), NewDefaultGraph()),
+				q(
+					NewNamedNode("http://example.org/base/thing"),
+					nn("p"),
+					NewNamedNode("http://example.org/base/target"),
+					NewDefaultGraph(),
+				),
 			},
 		},
 		{
@@ -334,28 +339,48 @@ but it is not. # this isn't either""" .`,
 			name:  "Decimal literal",
 			input: `<http://example.org/s> <http://example.org/price> 19.99 .`,
 			expectQuads: []interfaces.IQuad{
-				q(nn("s"), nn("price"), lit("19.99", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#decimal")), nil),
+				q(
+					nn("s"),
+					nn("price"),
+					lit("19.99", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#decimal")),
+					nil,
+				),
 			},
 		},
 		{
 			name:  "Double literal (exponent)",
 			input: `<http://example.org/s> <http://example.org/measurement> 6.022e23 .`,
 			expectQuads: []interfaces.IQuad{
-				q(nn("s"), nn("measurement"), lit("6.022e23", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#double")), nil),
+				q(
+					nn("s"),
+					nn("measurement"),
+					lit("6.022e23", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#double")),
+					nil,
+				),
 			},
 		},
 		{
 			name:  "Boolean literal true",
 			input: `<http://example.org/s> <http://example.org/enabled> true .`,
 			expectQuads: []interfaces.IQuad{
-				q(nn("s"), nn("enabled"), lit("true", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")), nil),
+				q(
+					nn("s"),
+					nn("enabled"),
+					lit("true", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")),
+					nil,
+				),
 			},
 		},
 		{
 			name:  "Boolean literal false",
 			input: `<http://example.org/s> <http://example.org/enabled> false .`,
 			expectQuads: []interfaces.IQuad{
-				q(nn("s"), nn("enabled"), lit("false", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")), nil),
+				q(
+					nn("s"),
+					nn("enabled"),
+					lit("false", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")),
+					nil,
+				),
 			},
 		},
 		{
@@ -440,7 +465,12 @@ but it is not. # this isn't either""" .`,
 			input: `<http://example.org/s> <http://example.org/p> ("a") .`,
 			expectQuads: []interfaces.IQuad{
 				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), l("a"), nil),
-				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
+				q(
+					bn("b0"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
 				q(nn("s"), nn("p"), bn("b0"), nil),
 			},
 		},
@@ -453,7 +483,12 @@ but it is not. # this isn't either""" .`,
 				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), l("b"), nil),
 				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b2"), nil),
 				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), l("c"), nil),
-				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
+				q(
+					bn("b2"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
 				q(nn("s"), nn("p"), bn("b0"), nil),
 			},
 		},
@@ -466,8 +501,18 @@ but it is not. # this isn't either""" .`,
 				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), l("apple"), nil),
 				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b1"), nil),
 				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), l("banana"), nil),
-				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
-				q(NewNamedNode("http://example.org/stuff/1.0/a"), NewNamedNode("http://example.org/stuff/1.0/b"), bn("b0"), nil),
+				q(
+					bn("b1"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
+				q(
+					NewNamedNode("http://example.org/stuff/1.0/a"),
+					NewNamedNode("http://example.org/stuff/1.0/b"),
+					bn("b0"),
+					nil,
+				),
 			},
 		},
 		{
@@ -480,20 +525,50 @@ but it is not. # this isn't either""" .`,
 The second line
   more""" .`,
 			expectQuads: []interfaces.IQuad{
-				q(NewNamedNode("http://example.org/stuff/1.0/a"), NewNamedNode("http://example.org/stuff/1.0/b"), l("The first line\nThe second line\n  more"), nil),
-				q(NewNamedNode("http://example.org/stuff/1.0/a"), NewNamedNode("http://example.org/stuff/1.0/b"), l("The first line\nThe second line\n  more"), nil),
+				q(
+					NewNamedNode("http://example.org/stuff/1.0/a"),
+					NewNamedNode("http://example.org/stuff/1.0/b"),
+					l("The first line\nThe second line\n  more"),
+					nil,
+				),
+				q(
+					NewNamedNode("http://example.org/stuff/1.0/a"),
+					NewNamedNode("http://example.org/stuff/1.0/b"),
+					l("The first line\nThe second line\n  more"),
+					nil,
+				),
 			},
 		},
 		{
 			name:  "Collection as subject",
 			input: `(1 2.0 3E1) <http://example.org/p> "w" .`,
 			expectQuads: []interfaces.IQuad{
-				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), lit("1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")), nil),
+				q(
+					bn("b0"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"),
+					lit("1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")),
+					nil,
+				),
 				q(bn("b0"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b1"), nil),
-				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), lit("2.0", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#decimal")), nil),
+				q(
+					bn("b1"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"),
+					lit("2.0", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#decimal")),
+					nil,
+				),
 				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b2"), nil),
-				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), lit("3E1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#double")), nil),
-				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
+				q(
+					bn("b2"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"),
+					lit("3E1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#double")),
+					nil,
+				),
+				q(
+					bn("b2"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
 				q(bn("b0"), nn("p"), l("w"), nil),
 			},
 		},
@@ -502,14 +577,34 @@ The second line
 			input: `(1 [<http://example.org/p> <http://example.org/q>] (2)) <http://example.org/p2> <http://example.org/q2> .`,
 			expectQuads: []interfaces.IQuad{
 				q(bn("b0"), nn("p"), nn("q"), nil),
-				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), lit("2", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")), nil),
-				q(bn("b1"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
-				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), lit("1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")), nil),
+				q(
+					bn("b1"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"),
+					lit("2", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")),
+					nil,
+				),
+				q(
+					bn("b1"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
+				q(
+					bn("b2"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"),
+					lit("1", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")),
+					nil,
+				),
 				q(bn("b2"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b3"), nil),
 				q(bn("b3"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), bn("b0"), nil),
 				q(bn("b3"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), bn("b4"), nil),
 				q(bn("b4"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"), bn("b1"), nil),
-				q(bn("b4"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"), NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"), nil),
+				q(
+					bn("b4"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"),
+					NewNamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"),
+					nil,
+				),
 				q(bn("b2"), nn("p2"), nn("q2"), nil),
 			},
 		},
@@ -2284,7 +2379,8 @@ func TestErrors(t *testing.T) {
 		for range out {
 		}
 		err, ok := <-errChan
-		if !ok || err == nil || !strings.Contains(err.Error(), "Syntax error near token: \".\" (syntax error: unexpected DOT)") {
+		if !ok || err == nil ||
+			!strings.Contains(err.Error(), "Syntax error near token: \".\" (syntax error: unexpected DOT)") {
 			t.Errorf("Expected parser failure fallback error, got: %v", err)
 		}
 	})

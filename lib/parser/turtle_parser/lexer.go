@@ -140,14 +140,13 @@ func unescapeLiteral(s string) string {
 	)
 	s = replacer.Replace(s)
 
-	// Handle \uXXXX and \UXXXXXXXX
-	reUnicode := regexp.MustCompile(`\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})`)
 	s = reUnicode.ReplaceAllStringFunc(s, func(m string) string {
 		var code int
+		// We ignore the errors as the regex will only match valid Unicode escape sequences
 		if strings.HasPrefix(m, `\u`) {
-			fmt.Sscanf(m, `\u%04x`, &code)
+			_, _ = fmt.Sscanf(m, `\u%04x`, &code)
 		} else {
-			fmt.Sscanf(m, `\U%08x`, &code)
+			_, _ = fmt.Sscanf(m, `\U%08x`, &code)
 		}
 		return string(rune(code))
 	})
@@ -287,4 +286,6 @@ var (
 	}, "|")
 
 	reTokenize = regexp.MustCompile(combinedPattern)
+
+	reUnicode = regexp.MustCompile(`\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})`)
 )

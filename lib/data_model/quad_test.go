@@ -27,7 +27,7 @@ func utilTermIsWrong(
 
 func utilTermIsCorrect(t *testing.T, err error, q interfaces.IQuad, testErrorMessage string) {
 	if err != nil {
-		t.Errorf(testErrorMessage)
+		t.Error(testErrorMessage)
 	}
 	if q == nil {
 		t.Errorf("Quad should not be nil if no error")

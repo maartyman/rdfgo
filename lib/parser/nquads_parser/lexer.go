@@ -113,7 +113,10 @@ var reDatatype = `(\^\^` + reIri + `)`
 var reBlankNode = `_:([A-Za-z0-9_:.]*[A-Za-z0-9_:])`
 var reDot = `\.`
 var reFallback = `\S+`
-var re = regexp.MustCompile(reIri + `|` + reLiteral + `|` + reLang + `|` + reDatatype + `|` + reBlankNode + `|` + reDot + `|` + reFallback)
+
+var re = regexp.MustCompile(
+	reIri + `|` + reLiteral + `|` + reLang + `|` + reDatatype + `|` + reBlankNode + `|` + reDot + `|` + reFallback,
+)
 
 func stripComments(line string) string {
 	inIRI := false
