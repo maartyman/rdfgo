@@ -17,11 +17,11 @@ import (
 type Options struct{}
 
 // Parse parses the input stream and returns a channel of quads and an error channel.
-func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error) {
+func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
 	yyErrorVerbose = true
 	errChan := make(chan error, 1)
 	tokens := make(chan string, 100)
-	out := make(chan interfaces.IQuad, 1)
+	out := make(interfaces.IStream, 1)
 
 	lex := &lexer{
 		tokens:       tokens,
@@ -64,7 +64,7 @@ func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error
 
 type lexer struct {
 	tokens       chan string
-	output       chan interfaces.IQuad
+	output       interfaces.IStream
 	errChan      chan error
 	lastTok      string
 	channelsOpen bool

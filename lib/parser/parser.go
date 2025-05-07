@@ -31,8 +31,8 @@ func getExtension(fileName string) string {
 }
 
 // ParseFile parses the input file based on its extension. It supports .nt, .nq, and .ttl formats.
-func ParseFile(fileName string, options Options) (chan interfaces.IQuad, chan error) {
-	quads := make(chan interfaces.IQuad)
+func ParseFile(fileName string, options Options) (interfaces.IStream, chan error) {
+	quads := make(interfaces.IStream)
 	errChan := make(chan error, 1)
 
 	file, err := os.Open(fileName)
@@ -55,7 +55,7 @@ func ParseFile(fileName string, options Options) (chan interfaces.IQuad, chan er
 }
 
 // Parse parses the input stream based on the provided format type. If no format type is provided, it will assume turtle.
-func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error) {
+func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
 	if options.Format == "" {
 		data, errChan := turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
 		newErrChan := make(chan error, 1)
@@ -77,7 +77,7 @@ func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error
 		return turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
 	default:
 		errChan := make(chan error)
-		emptyChannel := make(chan interfaces.IQuad)
+		emptyChannel := make(interfaces.IStream)
 		go func() {
 			errChan <- errors.New("unsupported format in options")
 			close(emptyChannel)
