@@ -2,3 +2,5 @@
 covprofile
 coverage.html
 y.output
+*.prof
+*.test

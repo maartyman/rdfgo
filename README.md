@@ -175,14 +175,17 @@ func main() {
 ## Future work
 ### package
 - [ ] Improve tests
-- [ ] Add CI/CD to the package
+- [ ] Improve make RDF 1.2 compliant
 
 ### interfaces
 - [ ] Add support for the Query rdfjs spec
 
 ### lib
 - [ ] Add dataset support to the store
-- [ ] Add a parser to the lib portion of the package
+- [ ] Add json-ld parser
+- [ ] Add n3 parser
+- [ ] Add nquads writer
+- [ ] Add turtle writer
 
 ## Development
 RDFgo has a makefile that can be used to run tests and build the package.
@@ -194,7 +197,7 @@ This will enable the git hooks and make sure the commit message follow the Conve
 ```
 type(scope): description
 ```
-Valid types: feat, fix, chore, docs, style, refactor, test, perf, ci <br>
+Valid types: feat, fix, chore<br>
 Example: `feat(parser): add ability to parse arrays` <br>
 It will also run the tests and linter before committing.
 
