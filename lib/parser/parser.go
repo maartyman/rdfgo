@@ -60,9 +60,7 @@ func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
 		data, errChan := turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
 		newErrChan := make(chan error, 1)
 		go func() {
-			println("Parsing turtle format, waiting if parsering error")
 			if err := <-errChan; err != nil {
-				println("Error parsing turtle format")
 				newErrChan <- errors.New("unsupported format in options")
 			}
 			close(newErrChan)
