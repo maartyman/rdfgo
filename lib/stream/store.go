@@ -12,6 +12,7 @@ type store struct {
 	mux     sync.RWMutex
 }
 
+// Store is an extension of the interfaces.IStore interface. It has various methods to manipulate the store, like adding and removing quads, checking if a quad exists, and iterating over the quads.
 type Store interface {
 	interfaces.IStore
 	Size() int
@@ -22,6 +23,7 @@ type Store interface {
 	ForEach(func(interfaces.IQuad))
 }
 
+// NewStore creates a new store of quads. A store indexes the quads by their subject, predicate, object, and graph. Note that this store is set semantics, meaning that it does not allow duplicate quads.
 func NewStore() Store {
 	return &store{
 		size:    0,
@@ -29,6 +31,7 @@ func NewStore() Store {
 	}
 }
 
+// Size returns the number of quads in the store.
 func (s *store) Size() int {
 	return s.size
 }
@@ -79,6 +82,7 @@ func convertVariablesToNil(
 	return subject, predicate, object, graph
 }
 
+// Has checks if the store contains a quad. It returns true if the quad exists, false otherwise.
 func (s *store) Has(quad interfaces.IQuad) bool {
 	s.mux.Lock()
 	_, exists := s.entries[quad.GetSubject().ToString()+","+quad.GetPredicate().ToString()+","+quad.GetObject().ToString()+","+quad.GetGraph().ToString()]
@@ -86,6 +90,7 @@ func (s *store) Has(quad interfaces.IQuad) bool {
 	return exists
 }
 
+// AddQuadFromTerms adds a quad to the store. It takes four terms: subject, predicate, object, and graph. If any of the terms are nil, it returns false. If the quad already exists in the store, it returns false.
 func (s *store) AddQuadFromTerms(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
@@ -127,10 +132,12 @@ func (s *store) AddQuadFromTerms(
 	return true
 }
 
+// AddQuad adds a quad to the store. It takes a quad as an argument. If the quad already exists in the store, it returns false.
 func (s *store) AddQuad(quad interfaces.IQuad) bool {
 	return s.AddQuadFromTerms(quad.GetSubject(), quad.GetPredicate(), quad.GetObject(), quad.GetGraph())
 }
 
+// RemoveQuad removes a quad from the store. It takes a quad as an argument. If the quad does not exist in the store, it does nothing.
 func (s *store) RemoveQuad(quad interfaces.IQuad) {
 	if !s.Has(quad) {
 		return
@@ -161,6 +168,7 @@ func (s *store) RemoveQuad(quad interfaces.IQuad) {
 	s.mux.Unlock()
 }
 
+// RemoveMatches removes all quads that match the given subject, predicate, object, and graph. It takes four terms as arguments.
 func (s *store) RemoveMatches(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
@@ -172,6 +180,7 @@ func (s *store) RemoveMatches(
 	}
 }
 
+// Remove removes all quads from the store that are in the given stream. It takes a stream as an argument.
 func (s *store) Remove(stream interfaces.IStream) {
 	for quad := range stream {
 		if quad != nil {
@@ -180,6 +189,7 @@ func (s *store) Remove(stream interfaces.IStream) {
 	}
 }
 
+// DeleteGraph removes all quads from the store that are in the given graph. It takes a graph as an argument.
 func (s *store) DeleteGraph(graph interfaces.ITerm) {
 	s.RemoveMatches(nil, nil, nil, graph)
 }
@@ -203,6 +213,7 @@ func (s *store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[",,,"+graph.ToString()]
 }
 
+// Match returns a stream of quads that match the given subject, predicate, object, and graph. It takes four terms as arguments. If all terms are nil, it returns all quads in the store.
 func (s *store) Match(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
@@ -321,6 +332,7 @@ func (s *store) Match(
 	return quadStream
 }
 
+// Import imports a stream of quads into the store. It takes a stream as an argument.
 func (s *store) Import(quadStream interfaces.IStream) {
 	for quad := range quadStream {
 		if quad != nil {
@@ -329,6 +341,7 @@ func (s *store) Import(quadStream interfaces.IStream) {
 	}
 }
 
+// ForEach iterates over all quads in the store and applies the given callback function to each quad. It takes a callback function as an argument.
 func (s *store) ForEach(callback func(interfaces.IQuad)) {
 	for key, value := range s.entries {
 		if key[0] != ',' && key[len(key)-1] != ',' {

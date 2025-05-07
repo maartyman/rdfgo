@@ -30,6 +30,7 @@ type terms struct {
 	RDF rdfTerms
 }
 
+// IRI gives access to common the IRI namespaces, like XSD, and RDF.
 var IRI = terms{
 	XSD: xsdTerms{
 		Decimal: NewNamedNode(xsd + "decimal"),

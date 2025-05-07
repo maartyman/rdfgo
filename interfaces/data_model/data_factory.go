@@ -1,5 +1,6 @@
 package interfaces
 
+// IDataFactory is an interface for data factories (https://rdf.js.org/data-model-spec/#datafactory-interface).
 type IDataFactory interface {
 	NamedNode(string) INamedNode
 	BlankNode(string) IBlankNode

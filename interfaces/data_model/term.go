@@ -1,5 +1,6 @@
 package interfaces
 
+// ITerm is an interface for terms (https://rdf.js.org/data-model-spec/#term-interface).
 type ITerm interface {
 	Equals(other ITerm) bool
 	GetType() TermType
@@ -7,6 +8,7 @@ type ITerm interface {
 	ToString() string
 }
 
+// TermType is an alias for an integer representing different terms.
 type TermType int
 
 var values = [...]string{
