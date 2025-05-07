@@ -8,12 +8,12 @@ import (
 
 const QuadValue = ""
 
-var SubjectTermTypeError = errors.New("subject needs to be a NamedNode, BlankNode, Quad or Variable")
-var PredicateTermTypeError = errors.New("predicate needs to be a NamedNode or Variable")
-var ObjectTermTypeError = errors.New("object needs to be a NamedNode, BlankNode, Literal, or Variable")
-var GraphTermTypeError = errors.New("graph needs to be a NamedNode, BlankNode, DefaultGraph, or Variable")
+var SubjectTermTypeError = errors.New("subject needs to be a namedNode, blankNode, quad or variable")
+var PredicateTermTypeError = errors.New("predicate needs to be a namedNode or variable")
+var ObjectTermTypeError = errors.New("object needs to be a namedNode, blankNode, literal, or variable")
+var GraphTermTypeError = errors.New("graph needs to be a namedNode, blankNode, defaultGraph, or variable")
 
-type Quad struct {
+type quad struct {
 	subject   interfaces.ITerm
 	predicate interfaces.ITerm
 	object    interfaces.ITerm
@@ -51,7 +51,7 @@ func NewQuad(
 		graph.GetType() != interfaces.VariableType {
 		return nil, GraphTermTypeError
 	}
-	return &Quad{
+	return &quad{
 		subject:   subject,
 		predicate: predicate,
 		object:    object,
@@ -59,14 +59,14 @@ func NewQuad(
 	}, nil
 }
 
-func (q *Quad) Equals(other interfaces.ITerm) bool {
+func (q *quad) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	if q == other {
 		return true
 	}
-	quad, ok := other.(*Quad)
+	quad, ok := other.(*quad)
 	if !ok || interfaces.QuadType != other.GetType() {
 		return false
 	}
@@ -77,31 +77,31 @@ func (q *Quad) Equals(other interfaces.ITerm) bool {
 		q.graph.Equals(quad.GetGraph())
 }
 
-func (q *Quad) GetType() interfaces.TermType {
+func (q *quad) GetType() interfaces.TermType {
 	return interfaces.QuadType
 }
 
-func (q *Quad) GetValue() string {
+func (q *quad) GetValue() string {
 	return QuadValue
 }
 
-func (q *Quad) GetSubject() interfaces.ITerm {
+func (q *quad) GetSubject() interfaces.ITerm {
 	return q.subject
 }
 
-func (q *Quad) GetPredicate() interfaces.ITerm {
+func (q *quad) GetPredicate() interfaces.ITerm {
 	return q.predicate
 }
 
-func (q *Quad) GetObject() interfaces.ITerm {
+func (q *quad) GetObject() interfaces.ITerm {
 	return q.object
 }
 
-func (q *Quad) GetGraph() interfaces.ITerm {
+func (q *quad) GetGraph() interfaces.ITerm {
 	return q.graph
 }
 
-func (q *Quad) ToString() string {
+func (q *quad) ToString() string {
 	return fmt.Sprintf(
 		"%s %s %s %s",
 		q.subject.ToString(),

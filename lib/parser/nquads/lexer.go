@@ -1,59 +1,74 @@
-package nquads_parser
+package nquads
 
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
 	. "github.com/maartyman/rdfgo/lib/data_model"
 	"io"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-func ParseNQuads(stream io.Reader) (chan interfaces.IQuad, chan error) {
+// Options holds the options for parsing.
+type Options struct{}
+
+// Parse parses the input stream and returns a channel of quads and an error channel.
+func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error) {
+	yyErrorVerbose = true
 	errChan := make(chan error, 1)
-	tokens := make(chan string)
-	out := make(chan interfaces.IQuad)
+	tokens := make(chan string, 100)
+	out := make(chan interfaces.IQuad, 1)
+
+	lex := &lexer{
+		tokens:       tokens,
+		output:       out,
+		errChan:      errChan,
+		channelsOpen: true,
+	}
 
 	go func() {
 		scanner := bufio.NewScanner(stream)
 		defer close(tokens)
 		for scanner.Scan() {
-			text := scanner.Text()
-			tokensInLine := tokenizeLine(text)
-			for _, tok := range tokensInLine {
-				tokens <- tok
-			}
+			lex.tokenizeLine(scanner.Text())
 		}
 
 		if err := scanner.Err(); err != nil {
-			errChan <- err
+			lex.mux.Lock()
+			if lex.channelsOpen {
+				errChan <- err
+				lex.channelsOpen = false
+				close(out)
+				close(errChan)
+			}
+			lex.mux.Unlock()
 		}
 	}()
 
-	lexer := &Lexer{
-		tokens:  tokens,
-		output:  out,
-		errChan: errChan,
-	}
-
 	go func() {
-		code := yyParse(lexer)
-		if code != 0 {
-			// an error occurred during parsing, the output channel and error channel are already closed
-			return
+		_ = yyParse(lex)
+		lex.mux.Lock()
+		if lex.channelsOpen {
+			lex.channelsOpen = false
+			close(out)
+			close(errChan)
 		}
-		close(out)
-		close(errChan)
+		lex.mux.Unlock()
 	}()
 	return out, errChan
 }
 
-type Lexer struct {
-	tokens  chan string
-	output  chan interfaces.IQuad
-	errChan chan error
+type lexer struct {
+	tokens       chan string
+	output       chan interfaces.IQuad
+	errChan      chan error
+	lastTok      string
+	channelsOpen bool
+	mux          sync.Mutex
 }
 
 func unescapeLiteral(s string) (string, error) {
@@ -65,52 +80,60 @@ func unescapeLiteral(s string) (string, error) {
 	return unquoted, nil
 }
 
-func (l *Lexer) Lex(lval *yySymType) int {
+func (l *lexer) Lex(lval *yySymType) int {
 	tok, ok := <-l.tokens
 	if !ok {
 		// Channel is closed, signaling EOF
 		return 0
 	}
+	l.lastTok = tok
 
 	switch {
 	case strings.HasPrefix(tok, "<") && strings.HasSuffix(tok, ">"):
 		lval.term = NewNamedNode(tok)
-		return NNODE
+		return _NNODE
 	case strings.HasPrefix(tok, "_:"):
 		lval.term = NewBlankNode(tok)
-		return BNODE
+		return _BNODE
 	case strings.HasPrefix(tok, "."):
-		return DOT
+		return _DOT
 	case strings.HasPrefix(tok, "@"):
 		lval.str = tok[1:]
-		return LANGTAG
+		return _LANGTAG
 	case strings.HasPrefix(tok, "^^"):
 		lval.term = NewNamedNode(tok[2:])
-		return DATATYPE
+		return _DATATYPE
 	case strings.HasPrefix(tok, "\"") && strings.HasSuffix(tok, "\""):
 		raw := tok[1 : len(tok)-1]
 		unescaped, err := unescapeLiteral(raw)
 		if err != nil {
-			return ERROR
+			return _ERROR
 		}
 		lval.str = unescaped
-		return LITERALVALUE
+		return _LITERALVALUE
 	default:
-		return ERROR
+		return _ERROR
 	}
 }
 
-func (l *Lexer) Error(e string) {
-	l.errChan <- errors.New(e)
-	close(l.output)
-	close(l.errChan)
+func (l *lexer) Error(e string) {
+	msg := fmt.Sprintf("Syntax error near token: %q (%s)", l.lastTok, e)
+
+	l.mux.Lock()
+	if l.channelsOpen {
+		l.errChan <- errors.New(msg)
+		l.channelsOpen = false
+		close(l.output)
+		close(l.errChan)
+	}
+	l.mux.Unlock()
 }
 
-var reIri = `<([^>]+)>`
-var reLiteral = `"((?:[^"\\]|\\.)*)"`
-var reLang = `(@[a-zA-Z]+(?:-[a-zA-Z0-9]+)*)`
-var reDatatype = `(\^\^` + reIri + `)`
-var reBlankNode = `_:([A-Za-z0-9_:.]*[A-Za-z0-9_:])`
+var reIri = `<(?:[^>]+)>`
+var reLiteral = `"(?:(?:[^"\\]|\\.)*)"`
+var reLang = `(?:@[a-zA-Z]+(?:-[a-zA-Z0-9]+)*)`
+var reDatatype = `\^\^` + reIri
+var reBlankNode = `_:(?:[A-Za-z0-9_:.]*[A-Za-z0-9_:])`
 var reDot = `\.`
 var reFallback = `\S+`
 
@@ -160,7 +183,11 @@ func stripComments(line string) string {
 	return line
 }
 
-func tokenizeLine(line string) []string {
+func (l *lexer) tokenizeLine(line string) {
 	line = stripComments(line)
-	return re.FindAllString(line, -1)
+	rawTokens := re.FindAllString(line, -1)
+
+	for _, rt := range rawTokens {
+		l.tokens <- rt
+	}
 }

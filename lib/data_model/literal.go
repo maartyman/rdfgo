@@ -5,14 +5,14 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type Literal struct {
+type literal struct {
 	value    string
 	language string
 	datatype interfaces.INamedNode
 }
 
 func NewLiteral(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
-	return &Literal{
+	return &literal{
 		value:    value,
 		language: language,
 		datatype: datatype,
@@ -39,7 +39,7 @@ func NewBooleanLiteral(value bool) interfaces.ILiteral {
 	return NewLiteral(fmt.Sprintf("%t", value), "", IRI.XSD.Boolean)
 }
 
-func (l *Literal) Equals(other interfaces.ITerm) bool {
+func (l *literal) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
@@ -55,23 +55,23 @@ func (l *Literal) Equals(other interfaces.ITerm) bool {
 			(l.datatype != nil && l.datatype.Equals(literal.GetDatatype())))
 }
 
-func (l *Literal) GetValue() string {
+func (l *literal) GetValue() string {
 	return l.value
 }
 
-func (l *Literal) GetType() interfaces.TermType {
+func (l *literal) GetType() interfaces.TermType {
 	return interfaces.LiteralType
 }
 
-func (l *Literal) GetLanguage() string {
+func (l *literal) GetLanguage() string {
 	return l.language
 }
 
-func (l *Literal) GetDatatype() interfaces.INamedNode {
+func (l *literal) GetDatatype() interfaces.INamedNode {
 	return l.datatype
 }
 
-func (l *Literal) ToString() string {
+func (l *literal) ToString() string {
 	languageString := ""
 	if l.language != "" {
 		languageString = fmt.Sprintf("@%s", l.language)

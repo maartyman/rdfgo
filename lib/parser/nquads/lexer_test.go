@@ -1,4 +1,4 @@
-package nquads_parser
+package nquads
 
 import (
 	"errors"
@@ -49,7 +49,7 @@ func lit(val string, lang string, dt interfaces.INamedNode) interfaces.ILiteral 
 	return literal
 }
 
-func TestParser(t *testing.T) {
+func TestNQuadsOutput(t *testing.T) {
 	tests := []QuadTestCase{
 		{
 			name:  "Simple quad with graph",
@@ -59,14 +59,14 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			name:  "Literal with lang",
+			name:  "literal with lang",
 			input: `<s> <p> "hello" @en .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("hello", "en", nil), nil),
 			},
 		},
 		{
-			name:  "Literal with datatype",
+			name:  "literal with datatype",
 			input: `<s> <p> "42"^^<http://www.w3.org/2001/XMLSchema#integer> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("42", "", nn("http://www.w3.org/2001/XMLSchema#integer")), NewDefaultGraph()),
@@ -143,7 +143,7 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			name:  "Literal is just dot character",
+			name:  "literal is just dot character",
 			input: `<s> <p> "." .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), l("."), NewDefaultGraph()),
@@ -173,7 +173,7 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			name:        "Literal with both lang and datatype (invalid)",
+			name:        "literal with both lang and datatype (invalid)",
 			input:       `<s> <p> "hello"@en^^<http://example.org/type> .`,
 			expectError: true,
 		},
@@ -324,7 +324,7 @@ func TestParser(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			outChan, errChan := ParseNQuads(strings.NewReader(tc.input))
+			outChan, errChan := Parse(strings.NewReader(tc.input), Options{})
 
 			var got []interfaces.IQuad
 			for quad := range outChan {
@@ -366,7 +366,7 @@ func TestParser(t *testing.T) {
 	}
 }
 
-func TestSpec(t *testing.T) {
+func TestNQuadsSpec(t *testing.T) {
 	tests := []QuadTestCase{
 		{
 			name:        "nt-syntax-bad-bnode-01",
@@ -813,7 +813,7 @@ func TestSpec(t *testing.T) {
 			}
 			defer data.Close()
 
-			outChan, errChan := ParseNQuads(data)
+			outChan, errChan := Parse(data, Options{})
 
 			for range outChan {
 			}
@@ -833,7 +833,7 @@ func TestSpec(t *testing.T) {
 	}
 }
 
-func TestParseNQuads_Streaming(t *testing.T) {
+func TestNQuadsStreaming(t *testing.T) {
 	t.Run("Chunked input - across lines", func(t *testing.T) {
 		chunked := []string{
 			"<s> <p> ", "<o> .\n",
@@ -857,7 +857,7 @@ func TestParseNQuads_Streaming(t *testing.T) {
 			}
 		}()
 
-		outChan, errChan := ParseNQuads(r)
+		outChan, errChan := Parse(r, Options{})
 
 		var got []interfaces.IQuad
 		for quad := range outChan {
@@ -874,7 +874,7 @@ func TestParseNQuads_Streaming(t *testing.T) {
 
 	t.Run("Simulate scanner read error", func(t *testing.T) {
 		badReader := iotest.ErrReader(errors.New("simulated read error"))
-		_, errChan := ParseNQuads(badReader)
+		_, errChan := Parse(badReader, Options{})
 
 		err, ok := <-errChan
 		if !ok || err == nil || !strings.Contains(err.Error(), "simulated read error") {
@@ -884,7 +884,7 @@ func TestParseNQuads_Streaming(t *testing.T) {
 
 	t.Run("Input ends mid-token", func(t *testing.T) {
 		in := `<s> <p> "unterminated`
-		outChan, errChan := ParseNQuads(strings.NewReader(in))
+		outChan, errChan := Parse(strings.NewReader(in), Options{})
 
 		var got []interfaces.IQuad
 		for q := range outChan {
@@ -900,7 +900,7 @@ func TestParseNQuads_Streaming(t *testing.T) {
 	})
 
 	t.Run("Empty input", func(t *testing.T) {
-		outChan, errChan := ParseNQuads(strings.NewReader(""))
+		outChan, errChan := Parse(strings.NewReader(""), Options{})
 
 		var got []interfaces.IQuad
 		for q := range outChan {
@@ -941,7 +941,7 @@ func TestParseNQuads_Streaming(t *testing.T) {
 			}
 		}()
 
-		outChan, errChan := ParseNQuads(pr)
+		outChan, errChan := Parse(pr, Options{})
 		var got []interfaces.IQuad
 		for q := range outChan {
 			got = append(got, q)

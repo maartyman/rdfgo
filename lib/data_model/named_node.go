@@ -5,7 +5,7 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type NamedNode struct {
+type namedNode struct {
 	value string
 }
 
@@ -20,26 +20,26 @@ func NewNamedNode(value string) interfaces.INamedNode {
 			value = value[:len(value)-1]
 		}
 	}
-	return &NamedNode{
+	return &namedNode{
 		value: value,
 	}
 }
 
-func (n *NamedNode) Equals(other interfaces.ITerm) bool {
+func (n *namedNode) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	return interfaces.NamedNodeType == other.GetType() && n.value == other.GetValue()
 }
 
-func (n *NamedNode) GetType() interfaces.TermType {
+func (n *namedNode) GetType() interfaces.TermType {
 	return interfaces.NamedNodeType
 }
 
-func (n *NamedNode) GetValue() string {
+func (n *namedNode) GetValue() string {
 	return n.value
 }
 
-func (n *NamedNode) ToString() string {
+func (n *namedNode) ToString() string {
 	return fmt.Sprintf("<%s>", n.value)
 }

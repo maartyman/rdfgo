@@ -4,42 +4,47 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type DataFactory struct {
+type dataFactory struct {
 	blankNodeCounter int
 }
 
-func NewDataFactory() *DataFactory {
-	return &DataFactory{0}
+type DataFactory interface {
+	interfaces.IDataFactory
+	SimpleLiteral(value string) interfaces.ILiteral
 }
 
-func (df *DataFactory) NamedNode(value string) interfaces.INamedNode {
+func NewDataFactory() DataFactory {
+	return &dataFactory{0}
+}
+
+func (df *dataFactory) NamedNode(value string) interfaces.INamedNode {
 	return NewNamedNode(value)
 }
 
-func (df *DataFactory) BlankNode(value string) interfaces.IBlankNode {
+func (df *dataFactory) BlankNode(value string) interfaces.IBlankNode {
 	return NewBlankNode(value)
 }
 
-func (df *DataFactory) SimpleLiteral(value string) interfaces.ILiteral {
-	return NewLiteral(value, "", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))
+func (df *dataFactory) SimpleLiteral(value string) interfaces.ILiteral {
+	return NewLiteral(value, "", IRI.XSD.String)
 }
 
-func (df *DataFactory) Literal(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
+func (df *dataFactory) Literal(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
 	if datatype == nil {
-		datatype = df.NamedNode("http://www.w3.org/2001/XMLSchema#string")
+		datatype = IRI.XSD.String
 	}
 	return NewLiteral(value, language, datatype)
 }
 
-func (df *DataFactory) Variable(value string) interfaces.IVariable {
+func (df *dataFactory) Variable(value string) interfaces.IVariable {
 	return NewVariable(value)
 }
 
-func (df *DataFactory) DefaultGraph() interfaces.IDefaultGraph {
+func (df *dataFactory) DefaultGraph() interfaces.IDefaultGraph {
 	return NewDefaultGraph()
 }
 
-func (df *DataFactory) Quad(
+func (df *dataFactory) Quad(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,

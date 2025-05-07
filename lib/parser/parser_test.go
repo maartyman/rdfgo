@@ -51,7 +51,7 @@ func TestParseFile_NQuadsAndNTriples(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			quads, errChan := ParseFile(tc.filePath)
+			quads, errChan := ParseFile(tc.filePath, Options{})
 
 			var got []interfaces.IQuad
 			for q := range quads {
@@ -70,7 +70,7 @@ func TestParseFile_NQuadsAndNTriples(t *testing.T) {
 }
 
 func TestParseFileUnsupportedExtension(t *testing.T) {
-	_, errChan := ParseFile("test_data/test.rdf")
+	_, errChan := ParseFile("test_data/test.rdfed", Options{})
 	err := <-errChan
 	if err == nil || !strings.Contains(err.Error(), "unsupported") {
 		t.Errorf("Expected unsupported file format error, got: %v", err)
@@ -78,24 +78,24 @@ func TestParseFileUnsupportedExtension(t *testing.T) {
 }
 
 func TestParseFileNotFound(t *testing.T) {
-	_, errChan := ParseFile("nonexistent.nq")
+	_, errChan := ParseFile("nonexistent.nq", Options{})
 	err := <-errChan
 	if err == nil || !os.IsNotExist(err) {
 		t.Errorf("Expected file not found error, got: %v", err)
 	}
 }
 
-func TestParseUnsupportedMIME(t *testing.T) {
-	_, errChan := Parse(strings.NewReader(""), "application/xml")
+func TestParseUnsupportedFormat(t *testing.T) {
+	_, errChan := Parse(strings.NewReader(""), Options{Format: "application/xml"})
 	err := <-errChan
 	if err == nil || !strings.Contains(err.Error(), "unsupported") {
-		t.Errorf("Expected unsupported MIME error, got: %v", err)
+		t.Errorf("Expected unsupported format error, got: %v", err)
 	}
 }
 
-func TestParseWithEmptyMIME(t *testing.T) {
-	data := `<s> <p> <o> .`
-	quads, errChan := Parse(strings.NewReader(data), "")
+func TestParseWithEmptyFormat(t *testing.T) {
+	data := `<http://example.com/s> <http://example.com/p> <http://example.com/o> .`
+	quads, errChan := Parse(strings.NewReader(data), Options{})
 	var got []interfaces.IQuad
 	for q := range quads {
 		got = append(got, q)
@@ -108,9 +108,9 @@ func TestParseWithEmptyMIME(t *testing.T) {
 	}
 }
 
-func TestParseWithNQuadsMIME(t *testing.T) {
+func TestParseWithNQuadsFormat(t *testing.T) {
 	data := `<s> <p> <o> .`
-	quads, errChan := Parse(strings.NewReader(data), "application/n-quads")
+	quads, errChan := Parse(strings.NewReader(data), Options{Format: "application/n-quads"})
 	var got []interfaces.IQuad
 	for q := range quads {
 		got = append(got, q)
@@ -123,9 +123,9 @@ func TestParseWithNQuadsMIME(t *testing.T) {
 	}
 }
 
-func TestParseWithTurtleMIME(t *testing.T) {
+func TestParseWithTurtleFormat(t *testing.T) {
 	data := `@base <http://example.com/>. <s> <p> <o> .`
-	quads, errChan := Parse(strings.NewReader(data), "text/turtle")
+	quads, errChan := Parse(strings.NewReader(data), Options{Format: "text/turtle"})
 	var got []interfaces.IQuad
 	for q := range quads {
 		got = append(got, q)

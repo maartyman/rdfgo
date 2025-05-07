@@ -7,7 +7,7 @@ import (
 
 var blankNodeCounter = 0
 
-type BlankNode struct {
+type blankNode struct {
 	value string
 }
 
@@ -22,26 +22,26 @@ func NewBlankNode(value string) interfaces.IBlankNode {
 		value = fmt.Sprintf("n3-%d", blankNodeCounter)
 		blankNodeCounter++
 	}
-	return &BlankNode{
+	return &blankNode{
 		value: value,
 	}
 }
 
-func (b *BlankNode) Equals(other interfaces.ITerm) bool {
+func (b *blankNode) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	return interfaces.BlankNodeType == other.GetType() && b.value == other.GetValue()
 }
 
-func (b *BlankNode) GetType() interfaces.TermType {
+func (b *blankNode) GetType() interfaces.TermType {
 	return interfaces.BlankNodeType
 }
 
-func (b *BlankNode) GetValue() string {
+func (b *blankNode) GetValue() string {
 	return b.value
 }
 
-func (b *BlankNode) ToString() string {
+func (b *blankNode) ToString() string {
 	return fmt.Sprintf("_:%s", b.value)
 }

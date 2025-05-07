@@ -3,11 +3,18 @@ package rdfgo
 import (
 	"errors"
 	"github.com/maartyman/rdfgo/interfaces"
-	"github.com/maartyman/rdfgo/lib/parser/nquads_parser"
-	"github.com/maartyman/rdfgo/lib/parser/turtle_parser"
+	"github.com/maartyman/rdfgo/lib/parser/nquads"
+	"github.com/maartyman/rdfgo/lib/parser/turtle"
 	"io"
 	"os"
+	"strings"
 )
+
+// Options holds the options for parsing.
+type Options struct {
+	Format  string
+	BaseIRI string
+}
 
 func getExtension(fileName string) string {
 	extensionStart := -1
@@ -23,7 +30,8 @@ func getExtension(fileName string) string {
 	return fileName[extensionStart:]
 }
 
-func ParseFile(fileName string) (chan interfaces.IQuad, chan error) {
+// ParseFile parses the input file based on its extension. It supports .nt, .nq, and .ttl formats.
+func ParseFile(fileName string, options Options) (chan interfaces.IQuad, chan error) {
 	quads := make(chan interfaces.IQuad)
 	errChan := make(chan error, 1)
 
@@ -38,34 +46,40 @@ func ParseFile(fileName string) (chan interfaces.IQuad, chan error) {
 	}
 	switch getExtension(fileName) {
 	case ".nt", ".nq":
-		return nquads_parser.ParseNQuads(file)
+		return nquads.Parse(file, nquads.Options{})
 	case ".ttl":
-		return turtle_parser.ParseTurtle(file, nil)
+		return turtle.Parse(file, turtle.Options{BaseIRI: options.BaseIRI})
 	default:
-		go func() {
-			errChan <- errors.New("unsupported file format")
-			close(errChan)
-			close(quads)
-		}()
-		return quads, errChan
+		return Parse(file, options)
 	}
 }
 
-// Parse parses the input stream based on the provided MIME type. If no MIME type is provided, it tries all supported formats.
-func Parse(stream io.Reader, mime string) (chan interfaces.IQuad, chan error) {
-	if mime == "" {
-		return nquads_parser.ParseNQuads(stream)
+// Parse parses the input stream based on the provided format type. If no format type is provided, it will assume turtle.
+func Parse(stream io.Reader, options Options) (chan interfaces.IQuad, chan error) {
+	if options.Format == "" {
+		data, errChan := turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
+		newErrChan := make(chan error, 1)
+		go func() {
+			println("Parsing turtle format, waiting if parsering error")
+			if err := <-errChan; err != nil {
+				println("Error parsing turtle format")
+				newErrChan <- errors.New("unsupported format in options")
+			}
+			close(newErrChan)
+		}()
+		return data, newErrChan
 	}
-	switch mime {
-	case "application/n-quads", "application/n-triples":
-		return nquads_parser.ParseNQuads(stream)
-	case "text/turtle":
-		return turtle_parser.ParseTurtle(stream, nil)
+	options.Format = strings.ToLower(options.Format)
+	switch options.Format {
+	case "application/n-quads", "application/n-triples", "n-triples", "n-quads", "ntriples", "nquads":
+		return nquads.Parse(stream, nquads.Options{})
+	case "text/turtle", "turtle":
+		return turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
 	default:
 		errChan := make(chan error)
 		emptyChannel := make(chan interfaces.IQuad)
 		go func() {
-			errChan <- errors.New("unsupported MIME type")
+			errChan <- errors.New("unsupported format in options")
 			close(emptyChannel)
 			close(errChan)
 		}()

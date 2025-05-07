@@ -11,7 +11,7 @@ import (
 func TestNewStore(t *testing.T) {
 	store := NewStore()
 	if store == nil {
-		t.Error("Store should not be nil")
+		t.Error("store should not be nil")
 	}
 }
 
@@ -28,7 +28,7 @@ func TestStoreImport(t *testing.T) {
 	})
 	store.Import(interfaces.IStream(stream))
 	if store.Size() <= 0 {
-		t.Error("Store should have quads")
+		t.Error("store should have quads")
 	}
 }
 
@@ -293,7 +293,7 @@ func TestStore_Match(t *testing.T) {
 		graph     interfaces.INamedNode
 		expected  int
 		message   string
-		store     IStore
+		store     Store
 	}{
 		{
 			"Match_AllNil",

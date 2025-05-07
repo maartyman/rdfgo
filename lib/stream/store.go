@@ -6,13 +6,13 @@ import (
 	"sync"
 )
 
-type Store struct {
+type store struct {
 	size    int
 	entries map[string][]interfaces.IQuad
 	mux     sync.RWMutex
 }
 
-type IStore interface {
+type Store interface {
 	interfaces.IStore
 	Size() int
 	Has(interfaces.IQuad) bool
@@ -22,14 +22,14 @@ type IStore interface {
 	ForEach(func(interfaces.IQuad))
 }
 
-func NewStore() IStore {
-	return &Store{
+func NewStore() Store {
+	return &store{
 		size:    0,
 		entries: make(map[string][]interfaces.IQuad),
 	}
 }
 
-func (s *Store) Size() int {
+func (s *store) Size() int {
 	return s.size
 }
 
@@ -79,14 +79,14 @@ func convertVariablesToNil(
 	return subject, predicate, object, graph
 }
 
-func (s *Store) Has(quad interfaces.IQuad) bool {
+func (s *store) Has(quad interfaces.IQuad) bool {
 	s.mux.Lock()
 	_, exists := s.entries[quad.GetSubject().ToString()+","+quad.GetPredicate().ToString()+","+quad.GetObject().ToString()+","+quad.GetGraph().ToString()]
 	s.mux.Unlock()
 	return exists
 }
 
-func (s *Store) AddQuadFromTerms(
+func (s *store) AddQuadFromTerms(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -127,11 +127,11 @@ func (s *Store) AddQuadFromTerms(
 	return true
 }
 
-func (s *Store) AddQuad(quad interfaces.IQuad) bool {
+func (s *store) AddQuad(quad interfaces.IQuad) bool {
 	return s.AddQuadFromTerms(quad.GetSubject(), quad.GetPredicate(), quad.GetObject(), quad.GetGraph())
 }
 
-func (s *Store) RemoveQuad(quad interfaces.IQuad) {
+func (s *store) RemoveQuad(quad interfaces.IQuad) {
 	if !s.Has(quad) {
 		return
 	}
@@ -161,7 +161,7 @@ func (s *Store) RemoveQuad(quad interfaces.IQuad) {
 	s.mux.Unlock()
 }
 
-func (s *Store) RemoveMatches(
+func (s *store) RemoveMatches(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -172,7 +172,7 @@ func (s *Store) RemoveMatches(
 	}
 }
 
-func (s *Store) Remove(stream interfaces.IStream) {
+func (s *store) Remove(stream interfaces.IStream) {
 	for quad := range stream {
 		if quad != nil {
 			s.RemoveQuad(quad)
@@ -180,30 +180,30 @@ func (s *Store) Remove(stream interfaces.IStream) {
 	}
 }
 
-func (s *Store) DeleteGraph(graph interfaces.ITerm) {
+func (s *store) DeleteGraph(graph interfaces.ITerm) {
 	s.RemoveMatches(nil, nil, nil, graph)
 }
 
-func (s *Store) matchSubject(subject interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchSubject(subject interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[subject.ToString()+",,,"]
 }
 
-func (s *Store) matchPredicate(predicate interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchPredicate(predicate interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[","+predicate.ToString()+",,"]
 }
 
-func (s *Store) matchObject(object interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchObject(object interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[",,"+object.ToString()+","]
 }
 
-func (s *Store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
 	if graph.GetType() == interfaces.DefaultGraphType {
 		return s.entries[",,,"+DefaultGraphValue]
 	}
 	return s.entries[",,,"+graph.ToString()]
 }
 
-func (s *Store) Match(
+func (s *store) Match(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -321,7 +321,7 @@ func (s *Store) Match(
 	return quadStream
 }
 
-func (s *Store) Import(quadStream interfaces.IStream) {
+func (s *store) Import(quadStream interfaces.IStream) {
 	for quad := range quadStream {
 		if quad != nil {
 			s.AddQuad(quad)
@@ -329,7 +329,7 @@ func (s *Store) Import(quadStream interfaces.IStream) {
 	}
 }
 
-func (s *Store) ForEach(callback func(interfaces.IQuad)) {
+func (s *store) ForEach(callback func(interfaces.IQuad)) {
 	for key, value := range s.entries {
 		if key[0] != ',' && key[len(key)-1] != ',' {
 			for _, quad := range value {

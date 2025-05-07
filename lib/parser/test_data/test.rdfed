@@ -1,0 +1,3 @@
+# This is an invalid rdf file format. I made it up to test the parser.
+basis ^http://example.org/^
+s -> p -> o .

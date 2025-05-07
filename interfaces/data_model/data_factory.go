@@ -6,5 +6,5 @@ type IDataFactory interface {
 	Literal(string, string, INamedNode) ILiteral
 	Variable(string) IVariable
 	DefaultGraph() IDefaultGraph
-	Quad(ITerm, ITerm, ITerm, ITerm) IQuad
+	Quad(ITerm, ITerm, ITerm, ITerm) (IQuad, error)
 }

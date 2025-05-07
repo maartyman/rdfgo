@@ -5,7 +5,7 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type Variable struct {
+type variable struct {
 	value string
 }
 
@@ -13,26 +13,26 @@ func NewVariable(value string) interfaces.IVariable {
 	if value[0] == '?' {
 		value = value[1:]
 	}
-	return &Variable{
+	return &variable{
 		value: value,
 	}
 }
 
-func (v *Variable) Equals(other interfaces.ITerm) bool {
+func (v *variable) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	return interfaces.VariableType == other.GetType() && v.value == other.GetValue()
 }
 
-func (v *Variable) GetType() interfaces.TermType {
+func (v *variable) GetType() interfaces.TermType {
 	return interfaces.VariableType
 }
 
-func (v *Variable) GetValue() string {
+func (v *variable) GetValue() string {
 	return v.value
 }
 
-func (v *Variable) ToString() string {
+func (v *variable) ToString() string {
 	return fmt.Sprintf("?%s", v.value)
 }

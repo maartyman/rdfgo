@@ -18,9 +18,9 @@ func TestBlankNode_Equals(t *testing.T) {
 		expected bool
 		message  string
 	}{
-		{b1, b1, true, "A BlankNode should equal itself"},
-		{b1, b2, false, "A BlankNode should not equal another BlankNode with a different value"},
-		{b1, b3, true, "A BlankNode should equal another BlankNode with the same value"},
+		{b1, b1, true, "A blankNode should equal itself"},
+		{b1, b2, false, "A blankNode should not equal another blankNode with a different value"},
+		{b1, b3, true, "A blankNode should equal another blankNode with the same value"},
 		{b4, b5, false, "Two blank nodes with no values should not equal each other"},
 	}
 
@@ -34,14 +34,14 @@ func TestBlankNode_Equals(t *testing.T) {
 func TestBlankNode_EqualsNil(t *testing.T) {
 	b1 := NewBlankNode("b1")
 	if b1.Equals(nil) {
-		t.Errorf("BlankNode should not equal nil")
+		t.Errorf("blankNode should not equal nil")
 	}
 }
 
 func TestBlankNode_GetType(t *testing.T) {
 	b := NewBlankNode("b")
 	if b.GetType() != interfaces.BlankNodeType {
-		t.Errorf("BlankNode type should be %s", interfaces.BlankNodeType)
+		t.Errorf("blankNode type should be %s", interfaces.BlankNodeType)
 	}
 }
 

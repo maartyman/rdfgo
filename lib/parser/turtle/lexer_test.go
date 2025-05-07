@@ -1,4 +1,4 @@
-package turtle_parser
+package turtle
 
 import (
 	"errors"
@@ -60,7 +60,7 @@ func lit(val string, lang string, dt interfaces.INamedNode) interfaces.ILiteral 
 	return literal
 }
 
-func TestOutput(t *testing.T) {
+func TestTurtleOutput(t *testing.T) {
 	tests := []TurtleTestCase{
 		{
 			name:  "Basic triple",
@@ -281,14 +281,14 @@ example.''' .`,
 			},
 		},
 		{
-			name:  "Literal double quotes triple with escape",
+			name:  "literal double quotes triple with escape",
 			input: `<http://example.org/s> <http://example.org/p> """\"""" .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), l("\""), nil),
 			},
 		},
 		{
-			name:  "Literal single quotes triple with escape",
+			name:  "literal single quotes triple with escape",
 			input: `<http://example.org/s> <http://example.org/p> '''\'''' .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), l("'"), nil),
@@ -391,63 +391,63 @@ but it is not. # this isn't either""" .`,
 			},
 		},
 		{
-			name:  "Literal with language tag",
+			name:  "literal with language tag",
 			input: `<http://example.org/s> <http://example.org/p> "hello"@en .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("hello", "en", nil), nil),
 			},
 		},
 		{
-			name:  "Literal with language tag (regional)",
+			name:  "literal with language tag (regional)",
 			input: `<http://example.org/s> <http://example.org/p> "bonjour"@fr-FR .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("bonjour", "fr-FR", nil), nil),
 			},
 		},
 		{
-			name:  "Literal with xsd<http://example.org/s>tring",
+			name:  "literal with xsd<http://example.org/s>tring",
 			input: `<http://example.org/s> <http://example.org/p> "typed"^^<http://www.w3.org/2001/XMLSchema#string> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("typed", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#string")), nil),
 			},
 		},
 		{
-			name:  "Literal with integer datatype",
+			name:  "literal with integer datatype",
 			input: `<http://example.org/s> <http://example.org/p> "123"^^<http://www.w3.org/2001/XMLSchema#integer> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("123", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#integer")), nil),
 			},
 		},
 		{
-			name:  "Literal with decimal datatype",
+			name:  "literal with decimal datatype",
 			input: `<http://example.org/s> <http://example.org/p> "3.14"^^<http://www.w3.org/2001/XMLSchema#decimal> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("3.14", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#decimal")), nil),
 			},
 		},
 		{
-			name:  "Literal with boolean true",
+			name:  "literal with boolean true",
 			input: `<http://example.org/s> <http://example.org/p> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("true", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")), nil),
 			},
 		},
 		{
-			name:  "Literal with boolean false",
+			name:  "literal with boolean false",
 			input: `<http://example.org/s> <http://example.org/p> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), lit("false", "", NewNamedNode("http://www.w3.org/2001/XMLSchema#boolean")), nil),
 			},
 		},
 		{
-			name:  "Literal with escaped characters",
+			name:  "literal with escaped characters",
 			input: `<http://example.org/s> <http://example.org/p> "Line1\nLine2\tTabbed" .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), l("Line1\nLine2\tTabbed"), nil),
 			},
 		},
 		{
-			name:  "Literal with unicode escape",
+			name:  "literal with unicode escape",
 			input: `<http://example.org/s> <http://example.org/p> "snowman: \u2603" .`,
 			expectQuads: []interfaces.IQuad{
 				q(nn("s"), nn("p"), l("snowman: ☃"), nil),
@@ -612,7 +612,7 @@ The second line
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			outChan, errChan := ParseTurtle(strings.NewReader(tc.input), nil)
+			outChan, errChan := Parse(strings.NewReader(tc.input), Options{})
 
 			var got []interfaces.IQuad
 			for quad := range outChan {
@@ -656,7 +656,7 @@ The second line
 	}
 }
 
-func TestSpec(t *testing.T) {
+func TestTurtleSpec(t *testing.T) {
 	tests := []TurtleTestCase{
 		{
 			name:        "IRI_subject",
@@ -2173,7 +2173,7 @@ func TestSpec(t *testing.T) {
 			}
 			defer data.Close()
 
-			outChan, errChan := ParseTurtle(data, &TurtleParserOptions{Base: "http://example.org/"})
+			outChan, errChan := Parse(data, Options{BaseIRI: "http://example.org/"})
 
 			for range outChan {
 				// We don't validate quads here, just parsing behavior
@@ -2194,7 +2194,7 @@ func TestSpec(t *testing.T) {
 	}
 }
 
-func TestStreaming(t *testing.T) {
+func TestTurtleStreaming(t *testing.T) {
 	t.Run("Chunked input - across lines", func(t *testing.T) {
 		chunked := []string{
 			"<http://example.org/s> <http://example.org/p> ",
@@ -2216,7 +2216,7 @@ func TestStreaming(t *testing.T) {
 			w.Close()
 		}()
 
-		outChan, errChan := ParseTurtle(r, nil)
+		outChan, errChan := Parse(r, Options{})
 
 		var got []interfaces.IQuad
 		for quad := range outChan {
@@ -2233,7 +2233,7 @@ func TestStreaming(t *testing.T) {
 
 	t.Run("Simulate scanner read error", func(t *testing.T) {
 		badReader := iotest.ErrReader(errors.New("simulated read error"))
-		_, errChan := ParseTurtle(badReader, nil)
+		_, errChan := Parse(badReader, Options{})
 
 		err, ok := <-errChan
 		if !ok || err == nil || !strings.Contains(err.Error(), "simulated read error") {
@@ -2243,7 +2243,7 @@ func TestStreaming(t *testing.T) {
 
 	t.Run("Input ends mid-token", func(t *testing.T) {
 		in := `<http://example.org/s> <http://example.org/p> "unterminated`
-		outChan, errChan := ParseTurtle(strings.NewReader(in), nil)
+		outChan, errChan := Parse(strings.NewReader(in), Options{})
 
 		var got []interfaces.IQuad
 		for q := range outChan {
@@ -2258,7 +2258,7 @@ func TestStreaming(t *testing.T) {
 	})
 
 	t.Run("Empty input", func(t *testing.T) {
-		outChan, errChan := ParseTurtle(strings.NewReader(""), nil)
+		outChan, errChan := Parse(strings.NewReader(""), Options{})
 
 		var got []interfaces.IQuad
 		for q := range outChan {
@@ -2296,7 +2296,7 @@ func TestStreaming(t *testing.T) {
 			pw.Close()
 		}()
 
-		outChan, errChan := ParseTurtle(pr, nil)
+		outChan, errChan := Parse(pr, Options{})
 		var got []interfaces.IQuad
 		for q := range outChan {
 			got = append(got, q)
@@ -2310,10 +2310,10 @@ func TestStreaming(t *testing.T) {
 	})
 }
 
-func TestErrors(t *testing.T) {
+func TestTurtleErrors(t *testing.T) {
 	t.Run("Unterminated literal", func(t *testing.T) {
 		input := `<http://example.org/s> <http://example.org/p> "unterminated`
-		out, errChan := ParseTurtle(strings.NewReader(input), nil)
+		out, errChan := Parse(strings.NewReader(input), Options{})
 
 		for range out {
 			// drain
@@ -2326,7 +2326,7 @@ func TestErrors(t *testing.T) {
 
 	t.Run("Illegal token", func(t *testing.T) {
 		input := `<http://example.org/s> <http://example.org/p> ?? .`
-		out, errChan := ParseTurtle(strings.NewReader(input), nil)
+		out, errChan := Parse(strings.NewReader(input), Options{})
 
 		for range out {
 			// drain
@@ -2339,7 +2339,7 @@ func TestErrors(t *testing.T) {
 
 	t.Run("Bad prefix usage", func(t *testing.T) {
 		input := `foo:bar <http://example.org/p> <http://example.org/o> .`
-		out, errChan := ParseTurtle(strings.NewReader(input), nil)
+		out, errChan := Parse(strings.NewReader(input), Options{})
 
 		for range out {
 		}
@@ -2351,7 +2351,7 @@ func TestErrors(t *testing.T) {
 
 	t.Run("Base-relative IRI without @base", func(t *testing.T) {
 		input := `<thing> <http://example.org/p> <http://example.org/o> .`
-		out, errChan := ParseTurtle(strings.NewReader(input), nil)
+		out, errChan := Parse(strings.NewReader(input), Options{})
 
 		for range out {
 		}
@@ -2363,7 +2363,7 @@ func TestErrors(t *testing.T) {
 
 	t.Run("Scanner read error", func(t *testing.T) {
 		badReader := iotest.ErrReader(errors.New("fake read error"))
-		_, errChan := ParseTurtle(badReader, nil)
+		_, errChan := Parse(badReader, Options{})
 
 		err, ok := <-errChan
 		if !ok || err == nil || !strings.Contains(err.Error(), "fake read error") {
@@ -2374,13 +2374,13 @@ func TestErrors(t *testing.T) {
 	t.Run("Parser failure triggers fallback message", func(t *testing.T) {
 		// This input should parse but will trigger a deliberate syntax error if your parser can't continue after object
 		input := `<http://example.org/s> <http://example.org/p> .`
-		out, errChan := ParseTurtle(strings.NewReader(input), nil)
+		out, errChan := Parse(strings.NewReader(input), Options{})
 
 		for range out {
 		}
 		err, ok := <-errChan
 		if !ok || err == nil ||
-			!strings.Contains(err.Error(), "Syntax error near token: \".\" (syntax error: unexpected DOT)") {
+			!strings.Contains(err.Error(), "Syntax error near token: \".\" (syntax error: unexpected _DOT)") {
 			t.Errorf("Expected parser failure fallback error, got: %v", err)
 		}
 	})
