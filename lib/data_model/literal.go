@@ -12,6 +12,9 @@ type literal struct {
 }
 
 func NewLiteral(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
+	if language != "" && datatype != nil {
+		datatype = nil
+	}
 	return &literal{
 		value:    value,
 		language: language,

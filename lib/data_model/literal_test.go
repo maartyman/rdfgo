@@ -18,14 +18,14 @@ func TestLiteralCreation(t *testing.T) {
 			literal:          NewLiteral("l1", "en", NewNamedNode("http://example.com")),
 			expectedValue:    "l1",
 			expectedLang:     "en",
-			expectedDatatype: NewNamedNode("http://example.com"),
+			expectedDatatype: nil,
 		},
 		{
 			name:             "NewStringLiteral with language",
 			literal:          NewStringLiteral("l1", "en"),
 			expectedValue:    "l1",
 			expectedLang:     "en",
-			expectedDatatype: IRI.XSD.String,
+			expectedDatatype: nil,
 		},
 		{
 			name:             "NewIntegerLiteral",
@@ -65,6 +65,12 @@ func TestLiteralCreation(t *testing.T) {
 			if tt.literal.GetLanguage() != tt.expectedLang {
 				t.Errorf("literal language should be %s, but got %s", tt.expectedLang, tt.literal.GetLanguage())
 			}
+			if tt.expectedDatatype == nil {
+				if tt.literal.GetDatatype() != nil {
+					t.Errorf("literal datatype should be nil, but got %s", tt.literal.GetDatatype().ToString())
+				}
+				return
+			}
 			if !tt.literal.GetDatatype().Equals(tt.expectedDatatype) {
 				t.Errorf(
 					"literal datatype should equal <%s>, but got %s",
@@ -91,7 +97,7 @@ func TestLiteral_GetValue(t *testing.T) {
 }
 
 func TestLiteral_GetDatatype(t *testing.T) {
-	l1 := NewLiteral("l1", "en", NewNamedNode("http://example.com"))
+	l1 := NewLiteral("l1", "", NewNamedNode("http://example.com"))
 	if !l1.GetDatatype().Equals(NewNamedNode("http://example.com")) {
 		t.Errorf("literal datatype should equal <http://example.com>")
 	}
