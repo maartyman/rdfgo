@@ -1,6 +1,7 @@
 package rdfgo
 
 import (
+	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
@@ -24,8 +25,12 @@ func (df *dataFactory) NamedNode(value string) interfaces.INamedNode {
 	return NewNamedNode(value)
 }
 
-// BlankNode is a method that creates a blank node. This returns an implementation of the interfaces.IBlankNode interface.
+// BlankNode is a method that creates a blank node. This returns an implementation of the interfaces.IBlankNode interface. if the value is empty, it generates a new blank node with an incremented counter (b0, b1, b2, etc.).
 func (df *dataFactory) BlankNode(value string) interfaces.IBlankNode {
+	if value == "" {
+		value = fmt.Sprintf("b%d", df.blankNodeCounter)
+		df.blankNodeCounter++
+	}
 	return NewBlankNode(value)
 }
 

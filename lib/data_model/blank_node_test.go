@@ -21,7 +21,7 @@ func TestBlankNode_Equals(t *testing.T) {
 		{b1, b1, true, "A blankNode should equal itself"},
 		{b1, b2, false, "A blankNode should not equal another blankNode with a different value"},
 		{b1, b3, true, "A blankNode should equal another blankNode with the same value"},
-		{b4, b5, false, "Two blank nodes with no values should not equal each other"},
+		{b4, b5, true, "Two blank nodes with no values should equal each other"},
 	}
 
 	for _, tt := range tests {

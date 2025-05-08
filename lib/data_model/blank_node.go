@@ -5,8 +5,6 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-var blankNodeCounter = 0
-
 type blankNode struct {
 	value string
 }
@@ -18,10 +16,6 @@ func NewBlankNode(value string) interfaces.IBlankNode {
 			break
 		}
 		value = value[1:]
-	}
-	if value == "" {
-		value = fmt.Sprintf("n3-%d", blankNodeCounter)
-		blankNodeCounter++
 	}
 	return &blankNode{
 		value: value,

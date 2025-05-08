@@ -13,8 +13,11 @@ func TestDataFactory_NamedNode(t *testing.T) {
 
 func TestDataFactory_BlankNode(t *testing.T) {
 	df := NewDataFactory()
-	if df.BlankNode("b1").Equals(NewBlankNode("b1")) == false {
+	if !df.BlankNode("b1").Equals(NewBlankNode("b1")) {
 		t.Error("Data factory blankNode should return a blankNode with the given value")
+	}
+	if !(df.BlankNode("").GetValue() == "b0" && df.BlankNode("").GetValue() == "b1") {
+		t.Error("Data factory blank nodes with no values should be incremented")
 	}
 	if df.BlankNode("").Equals(NewBlankNode("")) {
 		t.Error("A blank node build by df and a blank node build by NewBlankNode should have different counters")
