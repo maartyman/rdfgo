@@ -1,5 +1,6 @@
 f ?= ./...
 n ?= .
+cpu ?= -1
 
 # Define a list of files to ignore
 IGNORE_FILES = cmd/ yaccpar nquads.y
@@ -11,7 +12,16 @@ PATCH := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$4}')
 
 test:
 	# Run tests
-	@go test $(f) -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -26,7 +36,16 @@ test:
 
 test-verbose:
 	# Run tests verbose
-	@go test $(f) -v -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -v -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -v -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -47,7 +66,16 @@ test-cover:
 
 test-race:
 	# Run tests with race detector
-	@go test $(f) -race -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -race -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -race -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -75,7 +103,31 @@ benchmark:
 		n=$(n)$$; \
 		echo "Running benchmark $$n"; \
 	fi; \
-	go test $$f -bench=$$n -benchmem
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n; \
+	else \
+		go test $$f -bench=$$n -cpu=$(cpu); \
+	fi
+
+benchmark-mem:
+	# Benchmark
+	@if [ "$(f)" = "./..." ]; then \
+		f=./performance; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark in $$f"; \
+	fi; \
+	if [ "$(n)" = "." ]; then \
+		n=.; \
+	else \
+		n=$(n)$$; \
+		echo "Running benchmark $$n"; \
+	fi; \
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -benchmem; \
+	else \
+		go test $$f -bench=$$n -benchmem -cpu=$(cpu); \
+	fi
 
 flamegraph-cpu:
 	# Generate flame graph
@@ -91,7 +143,11 @@ flamegraph-cpu:
 		n=$(n)$$; \
 		echo "Running benchmark $$n"; \
 	fi; \
-	go test $$f -bench=$$n -benchmem -cpuprofile cpu.prof
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -cpuprofile cpu.prof; \
+	else \
+		go test $$f -bench=$$n -cpu=$(cpu) -cpuprofile cpu.prof; \
+	fi
 	@go tool pprof -http=:8080 cpu.prof
 
 flamegraph-mem:
@@ -108,7 +164,11 @@ flamegraph-mem:
 		n=$(n)$$; \
 		echo "Running benchmark $$n"; \
 	fi; \
-	go test $$f -bench=$$n -benchmem -memprofile mem.prof
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -benchmem -memprofile mem.prof; \
+	else \
+		go test $$f -bench=$$n -benchmem -cpu=$(cpu) -memprofile mem.prof;  \
+	fi
 	@go tool pprof -http=:8080 mem.prof
 
 shorten:

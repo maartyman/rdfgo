@@ -4,3 +4,4 @@ coverage.html
 y.output
 *.prof
 *.test
+*.tmp
