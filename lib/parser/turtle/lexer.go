@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"unicode/utf8"
 )
 
 // Options holds the options for parsing.
@@ -132,20 +133,98 @@ func (l *lexer) Error(e string) {
 }
 
 func unescape(s string) string {
-	s = replacer.Replace(s)
+	var b strings.Builder
+	b.Grow(len(s)) // preallocate to avoid reallocs
 
-	s = reUnicode.ReplaceAllStringFunc(s, func(m string) string {
-		var code int
-		// We ignore the errors as the regex will only match valid Unicode escape sequences
-		if strings.HasPrefix(m, `\u`) {
-			_, _ = fmt.Sscanf(m, `\u%04x`, &code)
-		} else {
-			_, _ = fmt.Sscanf(m, `\U%08x`, &code)
+	for i := 0; i < len(s); {
+		if s[i] != '\\' || i+1 >= len(s) {
+			b.WriteByte(s[i])
+			i++
+			continue
 		}
-		return string(rune(code))
-	})
 
-	return s
+		switch s[i+1] {
+		case 'u':
+			if i+6 <= len(s) {
+				if r, ok := parseHex(s[i+2 : i+6]); ok {
+					b.WriteRune(r)
+					i += 6
+					continue
+				}
+			}
+		case 'U':
+			if i+10 <= len(s) {
+				if r, ok := parseHex(s[i+2 : i+10]); ok {
+					b.WriteRune(r)
+					i += 10
+					continue
+				}
+			}
+		default:
+			if repl, ok := escapeMap[s[i+1]]; ok {
+				b.WriteByte(repl)
+				i += 2
+				continue
+			}
+		}
+
+		// If we get here, it's not a known escape — copy as-is
+		b.WriteByte(s[i])
+		i++
+	}
+
+	return b.String()
+}
+
+func parseHex(s string) (rune, bool) {
+	var r rune
+	for _, c := range s {
+		r <<= 4
+		switch {
+		case '0' <= c && c <= '9':
+			r += rune(c - '0')
+		case 'a' <= c && c <= 'f':
+			r += rune(c - 'a' + 10)
+		case 'A' <= c && c <= 'F':
+			r += rune(c - 'A' + 10)
+		default:
+			return 0, false
+		}
+	}
+	if r > utf8.MaxRune {
+		return 0, false
+	}
+	return r, true
+}
+
+var escapeMap = map[byte]byte{
+	'"':  '"',
+	'\'': '\'',
+	'\\': '\\',
+	'n':  '\n',
+	't':  '\t',
+	'r':  '\r',
+	'b':  '\b',
+	'f':  '\f',
+	'_':  '_',
+	'~':  '~',
+	'.':  '.',
+	'-':  '-',
+	'!':  '!',
+	'$':  '$',
+	'&':  '&',
+	'(':  '(',
+	')':  ')',
+	'*':  '*',
+	'+':  '+',
+	',':  ',',
+	';':  ';',
+	'=':  '=',
+	'/':  '/',
+	'?':  '?',
+	'#':  '#',
+	'@':  '@',
+	'%':  '%',
 }
 
 func processPrefixed(str string, tokenChan chan token) {
@@ -245,24 +324,24 @@ var (
 	numericPattern                     = `[+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+))(?:\.?[eE][+-]?[0-9]+)?`
 	booleanPattern                     = `\btrue\b|\bfalse\b`
 	iriPattern                         = `<[^>]*>`
-	fullMultilineDoubleQuoteLiteral    = `"""(?:(?s).*?)[^\\]?"""`
-	fullMultilineSingleQuoteLiteral    = `'''(?:(?s).*?)[^\\]?'''`
+	fullMultilineDoubleQuoteLiteral    = `"""(?:[^\\]|\\.|\\\n)*?"""`
+	fullMultilineSingleQuoteLiteral    = `'''(?:[^\\]|\\.|\\\n)*?'''`
 	partialMultilineDoubleQuoteLiteral = `"""(?:(?s).*)`
 	partialMultilineSingleQuoteLiteral = `'''(?:(?s).*)`
 	literalPatternDouble               = `"(?:[^"\\]|\\.)*"`
 	literalPatternSingle               = `'(?:[^'\\]|\\.)*'`
-	datatypePattern                    = `\^\^` + iriPattern
+	datatypePattern                    = `\^\^` + iriPattern + `|` + `\^\^` + prefixedNamePattern
 	langTagPattern                     = `@[a-zA-Z]+(?:-[a-zA-Z0-9]+)*`
 	blankNodePattern                   = `_:[\S]+`
 	symbolPattern                      = `[\.,;\[\]\(\)]`
-	prefixedNamePattern                = `(?:[^\(\)\s,;\[\]@\\#])*:(?:\\[_~\.\-!$&'\(\)*+,;=/?#@%]|[^\(\)\s,;\[\]@\\#])*`
+	prefixedNamePattern                = `(?:[^\(\)\s,;\[\]@\\#\^<>"'])*:(?:\\[_~\.\-!$&'\(\)*+,;=/?#@%]|[^\(\)\s,;\[\]@\\#\^<>"'])*`
 	keywordsPattern                    = `(?i)prefix|(?i)base|@prefix|@base|a`
 	commentPattern                     = `#.*`
 	fallbackPattern                    = `[^\s]+`
 
 	combinedPattern = strings.Join([]string{
-		numericPattern,
-		booleanPattern,
+		prefixedNamePattern,
+		blankNodePattern,
 		iriPattern,
 		fullMultilineDoubleQuoteLiteral,
 		fullMultilineSingleQuoteLiteral,
@@ -271,44 +350,14 @@ var (
 		literalPatternDouble,
 		literalPatternSingle,
 		datatypePattern,
+		numericPattern,
+		booleanPattern,
 		langTagPattern,
-		blankNodePattern,
 		symbolPattern,
-		prefixedNamePattern,
 		keywordsPattern,
 		commentPattern,
 		fallbackPattern,
 	}, "|")
 
 	reTokenize = regexp.MustCompile(combinedPattern)
-	reUnicode  = regexp.MustCompile(`\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})`)
-	replacer   = strings.NewReplacer(
-		`\\`, `\`,
-		`\"`, `"`,
-		`\'`, `'`,
-		`\n`, "\n",
-		`\t`, "\t",
-		`\r`, "\r",
-		`\b`, "\b",
-		`\f`, "\f",
-		`\_`, "_",
-		`\~`, "~",
-		`\.`, ".",
-		`\-`, "-",
-		`\!`, "!",
-		`\$`, "$",
-		`\&`, "&",
-		`\(`, "(",
-		`\)`, ")",
-		`\*`, "*",
-		`\+`, "+",
-		`\,`, ",",
-		`\;`, ";",
-		`\=`, "=",
-		`\/`, "/",
-		`\?`, "?",
-		`\#`, "#",
-		`\@`, "@",
-		`\%`, "%",
-	)
 )

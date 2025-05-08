@@ -694,6 +694,18 @@ The second line
 				q(bn("b2"), nn("p2"), nn("q2"), nil),
 			},
 		},
+		{
+			name:  "Exceeds max legal rune",
+			input: `@prefix ex: <http://example.org/> . ex:s ex:p "\uabcd" .`,
+			expectQuads: []interfaces.IQuad{
+				q(nn("s"), nn("p"), l("\uabcd"), nil),
+			},
+		},
+		{
+			name:        "Exceeds max legal rune",
+			input:       `@prefix ex: <http://example.org/> . ex:s ex:p "\U00110000" .`,
+			expectError: true,
+		},
 	}
 
 	for _, tc := range tests {
