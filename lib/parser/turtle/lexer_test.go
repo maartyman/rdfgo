@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
 	. "github.com/maartyman/rdfgo/lib/data_model"
+	"github.com/maartyman/rdfgo/lib/parser/nquads"
 	"io"
 	"os"
 	"strings"
@@ -18,6 +19,91 @@ type TurtleTestCase struct {
 	input       string
 	expectError bool
 	expectQuads []interfaces.IQuad
+	result      string
+}
+
+func areIsomorphic(g1, g2 []interfaces.IQuad) bool {
+	if len(g1) != len(g2) {
+		return false
+	}
+
+	var blank1, blank2, nonBlank1, nonBlank2 []interfaces.IQuad
+	for _, q := range g1 {
+		if q.GetSubject().GetType() == interfaces.BlankNodeType ||
+			q.GetPredicate().GetType() == interfaces.BlankNodeType ||
+			q.GetObject().GetType() == interfaces.BlankNodeType ||
+			q.GetGraph().GetType() == interfaces.BlankNodeType {
+			blank1 = append(blank1, q)
+		} else {
+			nonBlank1 = append(nonBlank1, q)
+		}
+	}
+	for _, q := range g2 {
+		if q.GetSubject().GetType() == interfaces.BlankNodeType ||
+			q.GetPredicate().GetType() == interfaces.BlankNodeType ||
+			q.GetObject().GetType() == interfaces.BlankNodeType ||
+			q.GetGraph().GetType() == interfaces.BlankNodeType {
+			blank2 = append(blank2, q)
+		} else {
+			nonBlank2 = append(nonBlank2, q)
+		}
+	}
+
+	if len(nonBlank1) != len(nonBlank2) {
+		return false
+	}
+	used := make([]bool, len(nonBlank2))
+	for _, qa := range nonBlank1 {
+		found := false
+		for j, qb := range nonBlank2 {
+			if used[j] {
+				continue
+			}
+			if qa.Equals(qb) {
+				used[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	return matchBlankNodes(blank1, blank2, make(map[string]string))
+}
+
+func matchBlankNodes(q1, q2 []interfaces.IQuad, mapping map[string]string) bool {
+	if len(q1) == 0 {
+		return true
+	}
+	for i, q := range q2 {
+		if termMatch(q1[0].GetSubject(), q.GetSubject(), mapping) &&
+			termMatch(q1[0].GetPredicate(), q.GetPredicate(), mapping) &&
+			termMatch(q1[0].GetObject(), q.GetObject(), mapping) &&
+			termMatch(q1[0].GetGraph(), q.GetGraph(), mapping) {
+			newQ1 := q1[1:]
+			newQ2 := append(q2[:i], q2[i+1:]...)
+			if matchBlankNodes(newQ1, newQ2, mapping) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func termMatch(a, b interfaces.ITerm, mapping map[string]string) bool {
+	if a.GetType() == interfaces.BlankNodeType {
+		idA := a.GetValue()
+		idB := b.GetValue()
+		if mapped, ok := mapping[idA]; ok {
+			return mapped == idB
+		}
+		mapping[idA] = idB
+		return true
+	} else {
+		return a.Equals(b)
+	}
 }
 
 func quadsListToString(quads []interfaces.IQuad) string {
@@ -650,6 +736,733 @@ The second line
 						want.ToString(),
 						got[i].ToString(),
 					)
+				}
+			}
+		})
+	}
+}
+
+func TestTurtleSpecOutput(t *testing.T) {
+	tests := []TurtleTestCase{
+		{
+			name:   "IRI_subject",
+			input:  "spec_tests/IRI_subject.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "IRI_with_four_digit_numeric_escape",
+			input:  "spec_tests/IRI_with_four_digit_numeric_escape.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "IRI_with_eight_digit_numeric_escape",
+			input:  "spec_tests/IRI_with_eight_digit_numeric_escape.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "IRI_with_all_punctuation",
+			input:  "spec_tests/IRI_with_all_punctuation.ttl",
+			result: "spec_tests/IRI_with_all_punctuation.nt",
+		},
+		{
+			name:   "bareword_a_predicate",
+			input:  "spec_tests/bareword_a_predicate.ttl",
+			result: "spec_tests/bareword_a_predicate.nt",
+		},
+		{
+			name:   "old_style_prefix",
+			input:  "spec_tests/old_style_prefix.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "SPARQL_style_prefix",
+			input:  "spec_tests/SPARQL_style_prefix.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefixed_IRI_predicate",
+			input:  "spec_tests/prefixed_IRI_predicate.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefixed_IRI_object",
+			input:  "spec_tests/prefixed_IRI_object.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefix_only_IRI",
+			input:  "spec_tests/prefix_only_IRI.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefix_with_PN_CHARS_BASE_character_boundaries",
+			input:  "spec_tests/prefix_with_PN_CHARS_BASE_character_boundaries.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefix_with_non_leading_extras",
+			input:  "spec_tests/prefix_with_non_leading_extras.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "default_namespace_IRI",
+			input:  "spec_tests/default_namespace_IRI.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "prefix_reassigned_and_used",
+			input:  "spec_tests/prefix_reassigned_and_used.ttl",
+			result: "spec_tests/prefix_reassigned_and_used.nt",
+		},
+		{
+			name:   "reserved_escaped_localName",
+			input:  "spec_tests/reserved_escaped_localName.ttl",
+			result: "spec_tests/reserved_escaped_localName.nt",
+		},
+		{
+			name:   "percent_escaped_localName",
+			input:  "spec_tests/percent_escaped_localName.ttl",
+			result: "spec_tests/percent_escaped_localName.nt",
+		},
+		{
+			name:   "HYPHEN_MINUS_in_localName",
+			input:  "spec_tests/HYPHEN_MINUS_in_localName.ttl",
+			result: "spec_tests/HYPHEN_MINUS_in_localName.nt",
+		},
+		{
+			name:   "underscore_in_localName",
+			input:  "spec_tests/underscore_in_localName.ttl",
+			result: "spec_tests/underscore_in_localName.nt",
+		},
+		{
+			name:   "localname_with_COLON",
+			input:  "spec_tests/localname_with_COLON.ttl",
+			result: "spec_tests/localname_with_COLON.nt",
+		},
+		{
+			name:   "localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries",
+			input:  "spec_tests/localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.ttl",
+			result: "spec_tests/localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.nt",
+		},
+		{
+			name:   "localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries",
+			input:  "spec_tests/localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.ttl",
+			result: "spec_tests/localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.nt",
+		},
+		{
+			name:   "localName_with_nfc_PN_CHARS_BASE_character_boundaries",
+			input:  "spec_tests/localName_with_nfc_PN_CHARS_BASE_character_boundaries.ttl",
+			result: "spec_tests/localName_with_nfc_PN_CHARS_BASE_character_boundaries.nt",
+		},
+		{
+			name:   "localName_with_leading_underscore",
+			input:  "spec_tests/localName_with_leading_underscore.ttl",
+			result: "spec_tests/localName_with_leading_underscore.nt",
+		},
+		{
+			name:   "localName_with_leading_digit",
+			input:  "spec_tests/localName_with_leading_digit.ttl",
+			result: "spec_tests/localName_with_leading_digit.nt",
+		},
+		{
+			name:   "localName_with_non_leading_extras",
+			input:  "spec_tests/localName_with_non_leading_extras.ttl",
+			result: "spec_tests/localName_with_non_leading_extras.nt",
+		},
+		{
+			name:   "old_style_base",
+			input:  "spec_tests/old_style_base.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "SPARQL_style_base",
+			input:  "spec_tests/SPARQL_style_base.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "labeled_blank_node_subject",
+			input:  "spec_tests/labeled_blank_node_subject.ttl",
+			result: "spec_tests/labeled_blank_node_subject.nt",
+		},
+		{
+			name:   "labeled_blank_node_object",
+			input:  "spec_tests/labeled_blank_node_object.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "labeled_blank_node_with_PN_CHARS_BASE_character_boundaries",
+			input:  "spec_tests/labeled_blank_node_with_PN_CHARS_BASE_character_boundaries.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "labeled_blank_node_with_leading_underscore",
+			input:  "spec_tests/labeled_blank_node_with_leading_underscore.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "labeled_blank_node_with_leading_digit",
+			input:  "spec_tests/labeled_blank_node_with_leading_digit.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "labeled_blank_node_with_non_leading_extras",
+			input:  "spec_tests/labeled_blank_node_with_non_leading_extras.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "anonymous_blank_node_subject",
+			input:  "spec_tests/anonymous_blank_node_subject.ttl",
+			result: "spec_tests/labeled_blank_node_subject.nt",
+		},
+		{
+			name:   "anonymous_blank_node_object",
+			input:  "spec_tests/anonymous_blank_node_object.ttl",
+			result: "spec_tests/labeled_blank_node_object.nt",
+		},
+		{
+			name:   "sole_blankNodePropertyList",
+			input:  "spec_tests/sole_blankNodePropertyList.ttl",
+			result: "spec_tests/labeled_blank_node_subject.nt",
+		},
+		{
+			name:   "blankNodePropertyList_as_subject",
+			input:  "spec_tests/blankNodePropertyList_as_subject.ttl",
+			result: "spec_tests/blankNodePropertyList_as_subject.nt",
+		},
+		{
+			name:   "blankNodePropertyList_as_object",
+			input:  "spec_tests/blankNodePropertyList_as_object.ttl",
+			result: "spec_tests/blankNodePropertyList_as_object.nt",
+		},
+		{
+			name:   "blankNodePropertyList_with_multiple_triples",
+			input:  "spec_tests/blankNodePropertyList_with_multiple_triples.ttl",
+			result: "spec_tests/blankNodePropertyList_with_multiple_triples.nt",
+		},
+		{
+			name:   "nested_blankNodePropertyLists",
+			input:  "spec_tests/nested_blankNodePropertyLists.ttl",
+			result: "spec_tests/nested_blankNodePropertyLists.nt",
+		},
+		{
+			name:   "blankNodePropertyList_containing_collection",
+			input:  "spec_tests/blankNodePropertyList_containing_collection.ttl",
+			result: "spec_tests/blankNodePropertyList_containing_collection.nt",
+		},
+		{
+			name:   "collection_subject",
+			input:  "spec_tests/collection_subject.ttl",
+			result: "spec_tests/collection_subject.nt",
+		},
+		{
+			name:   "collection_object",
+			input:  "spec_tests/collection_object.ttl",
+			result: "spec_tests/collection_object.nt",
+		},
+		{
+			name:   "empty_collection",
+			input:  "spec_tests/empty_collection.ttl",
+			result: "spec_tests/empty_collection.nt",
+		},
+		{
+			name:   "nested_collection",
+			input:  "spec_tests/nested_collection.ttl",
+			result: "spec_tests/nested_collection.nt",
+		},
+		{
+			name:   "first",
+			input:  "spec_tests/first.ttl",
+			result: "spec_tests/first.nt",
+		},
+		{
+			name:   "last",
+			input:  "spec_tests/last.ttl",
+			result: "spec_tests/last.nt",
+		},
+		{
+			name:   "LITERAL1",
+			input:  "spec_tests/LITERAL1.ttl",
+			result: "spec_tests/LITERAL1.nt",
+		},
+		{
+			name:   "LITERAL1_ascii_boundaries",
+			input:  "spec_tests/LITERAL1_ascii_boundaries.ttl",
+			result: "spec_tests/LITERAL1_ascii_boundaries.nt",
+		},
+		{
+			name:   "LITERAL1_with_UTF8_boundaries",
+			input:  "spec_tests/LITERAL1_with_UTF8_boundaries.ttl",
+			result: "spec_tests/LITERAL_with_UTF8_boundaries.nt",
+		},
+		{
+			name:   "LITERAL1_all_controls",
+			input:  "spec_tests/LITERAL1_all_controls.ttl",
+			result: "spec_tests/LITERAL1_all_controls.nt",
+		},
+		{
+			name:   "LITERAL1_all_punctuation",
+			input:  "spec_tests/LITERAL1_all_punctuation.ttl",
+			result: "spec_tests/LITERAL1_all_punctuation.nt",
+		},
+		{
+			name:   "LITERAL_LONG1",
+			input:  "spec_tests/LITERAL_LONG1.ttl",
+			result: "spec_tests/LITERAL1.nt",
+		},
+		{
+			name:   "LITERAL_LONG1_ascii_boundaries",
+			input:  "spec_tests/LITERAL_LONG1_ascii_boundaries.ttl",
+			result: "spec_tests/LITERAL_LONG1_ascii_boundaries.nt",
+		},
+		{
+			name:   "LITERAL_LONG1_with_UTF8_boundaries",
+			input:  "spec_tests/LITERAL_LONG1_with_UTF8_boundaries.ttl",
+			result: "spec_tests/LITERAL_with_UTF8_boundaries.nt",
+		},
+		{
+			name:   "LITERAL_LONG1_with_1_squote",
+			input:  "spec_tests/LITERAL_LONG1_with_1_squote.ttl",
+			result: "spec_tests/LITERAL_LONG1_with_1_squote.nt",
+		},
+		{
+			name:   "LITERAL_LONG1_with_2_squotes",
+			input:  "spec_tests/LITERAL_LONG1_with_2_squotes.ttl",
+			result: "spec_tests/LITERAL_LONG1_with_2_squotes.nt",
+		},
+		{
+			name:   "LITERAL2",
+			input:  "spec_tests/LITERAL2.ttl",
+			result: "spec_tests/LITERAL1.nt",
+		},
+		{
+			name:   "LITERAL2_ascii_boundaries",
+			input:  "spec_tests/LITERAL2_ascii_boundaries.ttl",
+			result: "spec_tests/LITERAL2_ascii_boundaries.nt",
+		},
+		{
+			name:   "LITERAL2_with_UTF8_boundaries",
+			input:  "spec_tests/LITERAL2_with_UTF8_boundaries.ttl",
+			result: "spec_tests/LITERAL_with_UTF8_boundaries.nt",
+		},
+		{
+			name:   "LITERAL_LONG2",
+			input:  "spec_tests/LITERAL_LONG2.ttl",
+			result: "spec_tests/LITERAL1.nt",
+		},
+		{
+			name:   "LITERAL_LONG2_ascii_boundaries",
+			input:  "spec_tests/LITERAL_LONG2_ascii_boundaries.ttl",
+			result: "spec_tests/LITERAL_LONG2_ascii_boundaries.nt",
+		},
+		{
+			name:   "LITERAL_LONG2_with_UTF8_boundaries",
+			input:  "spec_tests/LITERAL_LONG2_with_UTF8_boundaries.ttl",
+			result: "spec_tests/LITERAL_with_UTF8_boundaries.nt",
+		},
+		{
+			name:   "LITERAL_LONG2_with_1_squote",
+			input:  "spec_tests/LITERAL_LONG2_with_1_squote.ttl",
+			result: "spec_tests/LITERAL_LONG2_with_1_squote.nt",
+		},
+		{
+			name:   "LITERAL_LONG2_with_2_squotes",
+			input:  "spec_tests/LITERAL_LONG2_with_2_squotes.ttl",
+			result: "spec_tests/LITERAL_LONG2_with_2_squotes.nt",
+		},
+		{
+			name:   "literal_with_CHARACTER_TABULATION",
+			input:  "spec_tests/literal_with_CHARACTER_TABULATION.ttl",
+			result: "spec_tests/literal_with_CHARACTER_TABULATION.nt",
+		},
+		{
+			name:   "literal_with_BACKSPACE",
+			input:  "spec_tests/literal_with_BACKSPACE.ttl",
+			result: "spec_tests/literal_with_BACKSPACE.nt",
+		},
+		{
+			name:   "literal_with_LINE_FEED",
+			input:  "spec_tests/literal_with_LINE_FEED.ttl",
+			result: "spec_tests/literal_with_LINE_FEED.nt",
+		},
+		{
+			name:   "literal_with_CARRIAGE_RETURN",
+			input:  "spec_tests/literal_with_CARRIAGE_RETURN.ttl",
+			result: "spec_tests/literal_with_CARRIAGE_RETURN.nt",
+		},
+		{
+			name:   "literal_with_FORM_FEED",
+			input:  "spec_tests/literal_with_FORM_FEED.ttl",
+			result: "spec_tests/literal_with_FORM_FEED.nt",
+		},
+		{
+			name:   "literal_with_REVERSE_SOLIDUS",
+			input:  "spec_tests/literal_with_REVERSE_SOLIDUS.ttl",
+			result: "spec_tests/literal_with_REVERSE_SOLIDUS.nt",
+		},
+		{
+			name:   "literal_with_escaped_CHARACTER_TABULATION",
+			input:  "spec_tests/literal_with_escaped_CHARACTER_TABULATION.ttl",
+			result: "spec_tests/literal_with_CHARACTER_TABULATION.nt",
+		},
+		{
+			name:   "literal_with_escaped_BACKSPACE",
+			input:  "spec_tests/literal_with_escaped_BACKSPACE.ttl",
+			result: "spec_tests/literal_with_BACKSPACE.nt",
+		},
+		{
+			name:   "literal_with_escaped_LINE_FEED",
+			input:  "spec_tests/literal_with_escaped_LINE_FEED.ttl",
+			result: "spec_tests/literal_with_LINE_FEED.nt",
+		},
+		{
+			name:   "literal_with_escaped_CARRIAGE_RETURN",
+			input:  "spec_tests/literal_with_escaped_CARRIAGE_RETURN.ttl",
+			result: "spec_tests/literal_with_CARRIAGE_RETURN.nt",
+		},
+		{
+			name:   "literal_with_escaped_FORM_FEED",
+			input:  "spec_tests/literal_with_escaped_FORM_FEED.ttl",
+			result: "spec_tests/literal_with_FORM_FEED.nt",
+		},
+		{
+			name:   "literal_with_numeric_escape4",
+			input:  "spec_tests/literal_with_numeric_escape4.ttl",
+			result: "spec_tests/literal_with_numeric_escape4.nt",
+		},
+		{
+			name:   "literal_with_numeric_escape8",
+			input:  "spec_tests/literal_with_numeric_escape8.ttl",
+			result: "spec_tests/literal_with_numeric_escape4.nt",
+		},
+		{
+			name:   "IRIREF_datatype",
+			input:  "spec_tests/IRIREF_datatype.ttl",
+			result: "spec_tests/IRIREF_datatype.nt",
+		},
+		{
+			name:   "prefixed_name_datatype",
+			input:  "spec_tests/prefixed_name_datatype.ttl",
+			result: "spec_tests/IRIREF_datatype.nt",
+		},
+		{
+			name:   "bareword_integer",
+			input:  "spec_tests/bareword_integer.ttl",
+			result: "spec_tests/IRIREF_datatype.nt",
+		},
+		{
+			name:   "bareword_decimal",
+			input:  "spec_tests/bareword_decimal.ttl",
+			result: "spec_tests/bareword_decimal.nt",
+		},
+		{
+			name:   "bareword_double",
+			input:  "spec_tests/bareword_double.ttl",
+			result: "spec_tests/bareword_double.nt",
+		},
+		{
+			name:   "double_lower_case_e",
+			input:  "spec_tests/double_lower_case_e.ttl",
+			result: "spec_tests/double_lower_case_e.nt",
+		},
+		{
+			name:   "negative_numeric",
+			input:  "spec_tests/negative_numeric.ttl",
+			result: "spec_tests/negative_numeric.nt",
+		},
+		{
+			name:   "positive_numeric",
+			input:  "spec_tests/positive_numeric.ttl",
+			result: "spec_tests/positive_numeric.nt",
+		},
+		{
+			name:   "numeric_with_leading_0",
+			input:  "spec_tests/numeric_with_leading_0.ttl",
+			result: "spec_tests/numeric_with_leading_0.nt",
+		},
+		{
+			name:   "literal_true",
+			input:  "spec_tests/literal_true.ttl",
+			result: "spec_tests/literal_true.nt",
+		},
+		{
+			name:   "literal_false",
+			input:  "spec_tests/literal_false.ttl",
+			result: "spec_tests/literal_false.nt",
+		},
+		{
+			name:   "langtagged_non_LONG",
+			input:  "spec_tests/langtagged_non_LONG.ttl",
+			result: "spec_tests/langtagged_non_LONG.nt",
+		},
+		{
+			name:   "langtagged_LONG",
+			input:  "spec_tests/langtagged_LONG.ttl",
+			result: "spec_tests/langtagged_non_LONG.nt",
+		},
+		{
+			name:   "lantag_with_subtag",
+			input:  "spec_tests/lantag_with_subtag.ttl",
+			result: "spec_tests/lantag_with_subtag.nt",
+		},
+		{
+			name:   "objectList_with_two_objects",
+			input:  "spec_tests/objectList_with_two_objects.ttl",
+			result: "spec_tests/objectList_with_two_objects.nt",
+		},
+		{
+			name:   "predicateObjectList_with_two_objectLists",
+			input:  "spec_tests/predicateObjectList_with_two_objectLists.ttl",
+			result: "spec_tests/predicateObjectList_with_two_objectLists.nt",
+		},
+		{
+			name:   "repeated_semis_at_end",
+			input:  "spec_tests/repeated_semis_at_end.ttl",
+			result: "spec_tests/predicateObjectList_with_two_objectLists.nt",
+		},
+		{
+			name:   "repeated_semis_not_at_end",
+			input:  "spec_tests/repeated_semis_not_at_end.ttl",
+			result: "spec_tests/repeated_semis_not_at_end.nt",
+		},
+		{
+			name:   "comment_following_localName",
+			input:  "spec_tests/comment_following_localName.ttl",
+			result: "spec_tests/IRI_spo.nt",
+		},
+		{
+			name:   "number_sign_following_localName",
+			input:  "spec_tests/number_sign_following_localName.ttl",
+			result: "spec_tests/number_sign_following_localName.nt",
+		},
+		{
+			name:   "comment_following_PNAME_NS",
+			input:  "spec_tests/comment_following_PNAME_NS.ttl",
+			result: "spec_tests/comment_following_PNAME_NS.nt",
+		},
+		{
+			name:   "number_sign_following_PNAME_NS",
+			input:  "spec_tests/number_sign_following_PNAME_NS.ttl",
+			result: "spec_tests/number_sign_following_PNAME_NS.nt",
+		},
+		{
+			name:   "LITERAL_LONG2_with_REVERSE_SOLIDUS",
+			input:  "spec_tests/LITERAL_LONG2_with_REVERSE_SOLIDUS.ttl",
+			result: "spec_tests/LITERAL_LONG2_with_REVERSE_SOLIDUS.nt",
+		},
+		{
+			name:   "two_LITERAL_LONG2s",
+			input:  "spec_tests/two_LITERAL_LONG2s.ttl",
+			result: "spec_tests/two_LITERAL_LONG2s.nt",
+		},
+		{
+			name:   "langtagged_LONG_with_subtag",
+			input:  "spec_tests/langtagged_LONG_with_subtag.ttl",
+			result: "spec_tests/langtagged_LONG_with_subtag.nt",
+		},
+		{
+			name:   "turtle-eval-struct-01",
+			input:  "spec_tests/turtle-eval-struct-01.ttl",
+			result: "spec_tests/turtle-eval-struct-01.nt",
+		},
+		{
+			name:   "turtle-eval-struct-02",
+			input:  "spec_tests/turtle-eval-struct-02.ttl",
+			result: "spec_tests/turtle-eval-struct-02.nt",
+		},
+		{
+			name:   "turtle-subm-01",
+			input:  "spec_tests/turtle-subm-01.ttl",
+			result: "spec_tests/turtle-subm-01.nt",
+		},
+		{
+			name:   "turtle-subm-02",
+			input:  "spec_tests/turtle-subm-02.ttl",
+			result: "spec_tests/turtle-subm-02.nt",
+		},
+		{
+			name:   "turtle-subm-03",
+			input:  "spec_tests/turtle-subm-03.ttl",
+			result: "spec_tests/turtle-subm-03.nt",
+		},
+		{
+			name:   "turtle-subm-04",
+			input:  "spec_tests/turtle-subm-04.ttl",
+			result: "spec_tests/turtle-subm-04.nt",
+		},
+		{
+			name:   "turtle-subm-05",
+			input:  "spec_tests/turtle-subm-05.ttl",
+			result: "spec_tests/turtle-subm-05.nt",
+		},
+		{
+			name:   "turtle-subm-06",
+			input:  "spec_tests/turtle-subm-06.ttl",
+			result: "spec_tests/turtle-subm-06.nt",
+		},
+		{
+			name:   "turtle-subm-07",
+			input:  "spec_tests/turtle-subm-07.ttl",
+			result: "spec_tests/turtle-subm-07.nt",
+		},
+		{
+			name:   "turtle-subm-08",
+			input:  "spec_tests/turtle-subm-08.ttl",
+			result: "spec_tests/turtle-subm-08.nt",
+		},
+		{
+			name:   "turtle-subm-09",
+			input:  "spec_tests/turtle-subm-09.ttl",
+			result: "spec_tests/turtle-subm-09.nt",
+		},
+		{
+			name:   "turtle-subm-10",
+			input:  "spec_tests/turtle-subm-10.ttl",
+			result: "spec_tests/turtle-subm-10.nt",
+		},
+		{
+			name:   "turtle-subm-11",
+			input:  "spec_tests/turtle-subm-11.ttl",
+			result: "spec_tests/turtle-subm-11.nt",
+		},
+		{
+			name:   "turtle-subm-12",
+			input:  "spec_tests/turtle-subm-12.ttl",
+			result: "spec_tests/turtle-subm-12.nt",
+		},
+		{
+			name:   "turtle-subm-13",
+			input:  "spec_tests/turtle-subm-13.ttl",
+			result: "spec_tests/turtle-subm-13.nt",
+		},
+		{
+			name:   "turtle-subm-14",
+			input:  "spec_tests/turtle-subm-14.ttl",
+			result: "spec_tests/turtle-subm-14.nt",
+		},
+		{
+			name:   "turtle-subm-15",
+			input:  "spec_tests/turtle-subm-15.ttl",
+			result: "spec_tests/turtle-subm-15.nt",
+		},
+		{
+			name:   "turtle-subm-16",
+			input:  "spec_tests/turtle-subm-16.ttl",
+			result: "spec_tests/turtle-subm-16.nt",
+		},
+		{
+			name:   "turtle-subm-17",
+			input:  "spec_tests/turtle-subm-17.ttl",
+			result: "spec_tests/turtle-subm-17.nt",
+		},
+		{
+			name:   "turtle-subm-18",
+			input:  "spec_tests/turtle-subm-18.ttl",
+			result: "spec_tests/turtle-subm-18.nt",
+		},
+		{
+			name:   "turtle-subm-19",
+			input:  "spec_tests/turtle-subm-19.ttl",
+			result: "spec_tests/turtle-subm-19.nt",
+		},
+		{
+			name:   "turtle-subm-20",
+			input:  "spec_tests/turtle-subm-20.ttl",
+			result: "spec_tests/turtle-subm-20.nt",
+		},
+		{
+			name:   "turtle-subm-21",
+			input:  "spec_tests/turtle-subm-21.ttl",
+			result: "spec_tests/turtle-subm-21.nt",
+		},
+		{
+			name:   "turtle-subm-22",
+			input:  "spec_tests/turtle-subm-22.ttl",
+			result: "spec_tests/turtle-subm-22.nt",
+		},
+		{
+			name:   "turtle-subm-23",
+			input:  "spec_tests/turtle-subm-23.ttl",
+			result: "spec_tests/turtle-subm-23.nt",
+		},
+		{
+			name:   "turtle-subm-24",
+			input:  "spec_tests/turtle-subm-24.ttl",
+			result: "spec_tests/turtle-subm-24.nt",
+		},
+		{
+			name:   "turtle-subm-25",
+			input:  "spec_tests/turtle-subm-25.ttl",
+			result: "spec_tests/turtle-subm-25.nt",
+		},
+		{
+			name:   "turtle-subm-26",
+			input:  "spec_tests/turtle-subm-26.ttl",
+			result: "spec_tests/turtle-subm-26.nt",
+		},
+		{
+			name:   "turtle-subm-27",
+			input:  "spec_tests/turtle-subm-27.ttl",
+			result: "spec_tests/turtle-subm-27.nt",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := os.Open(tc.result)
+			if err != nil {
+				t.Fatalf("Failed to open file %s: %v", tc.input, err)
+			}
+
+			resultChan, errChan := nquads.Parse(data, nquads.Options{})
+
+			result := make([]interfaces.IQuad, 0)
+			for q := range resultChan {
+				result = append(result, q)
+			}
+			data.Close()
+
+			if err, ok := <-errChan; ok {
+				t.Fatalf("Error parsing result quads: %v", err)
+			}
+
+			data, err = os.Open(tc.input)
+			if err != nil {
+				t.Fatalf("Failed to open file %s: %v", tc.input, err)
+			}
+			defer data.Close()
+
+			outChan, errChan := Parse(data, Options{BaseIRI: "http://example.org/"})
+
+			got := make([]interfaces.IQuad, 0)
+			for q := range outChan {
+				got = append(got, q)
+			}
+
+			err = <-errChan
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+			if len(got) != len(result) {
+				t.Errorf("Expected %d quads, got %d", len(result), len(got))
+				t.Errorf("Expected: %s", quadsListToString(result))
+				t.Errorf("Got: %s", quadsListToString(got))
+				return
+			}
+			if !areIsomorphic(got, result) {
+				for i, want := range result {
+					if i >= len(got) {
+						t.Errorf("Missing quad: %s", want)
+						continue
+					}
+					if !want.Equals(got[i]) {
+						t.Errorf(
+							"Mismatch at quad %d:\n  expected: %s\n       got: %s",
+							i,
+							want.ToString(),
+							got[i].ToString(),
+						)
+					}
 				}
 			}
 		})
