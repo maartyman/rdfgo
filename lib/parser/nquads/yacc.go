@@ -10,10 +10,9 @@ import __yyfmt__ "fmt"
 import (
 	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
-	. "github.com/maartyman/rdfgo/lib/data_model"
 )
 
-//line ./nquads.y:11
+//line ./nquads.y:10
 type yySymType struct {
 	yys  int
 	str  string
@@ -48,7 +47,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line ./nquads.y:70
+//line ./nquads.y:69
 
 //line yacctab:1
 var yyExca = [...]int8{
@@ -446,9 +445,9 @@ yydefault:
 
 	case 3:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line ./nquads.y:32
+//line ./nquads.y:31
 		{
-			quad, err := NewQuad(yyDollar[1].term, yyDollar[2].term, yyDollar[3].term, yyDollar[4].term)
+			quad, err := yylex.(*lexer).dataFactory.Quad(yyDollar[1].term, yyDollar[2].term, yyDollar[3].term, yyDollar[4].term)
 			if err != nil {
 				yylex.Error(fmt.Sprintf("Quad creation failed: %v", err))
 				return 1
@@ -458,75 +457,75 @@ yydefault:
 		}
 	case 4:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:44
+//line ./nquads.y:43
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 5:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:45
+//line ./nquads.y:44
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 6:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:49
+//line ./nquads.y:48
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:53
+//line ./nquads.y:52
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 8:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:54
+//line ./nquads.y:53
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 9:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:55
+//line ./nquads.y:54
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 10:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line ./nquads.y:59
+//line ./nquads.y:58
 		{
-			yyVAL.term = NewDefaultGraph()
+			yyVAL.term = yylex.(*lexer).dataFactory.DefaultGraph()
 		}
 	case 11:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:60
+//line ./nquads.y:59
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 12:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:61
+//line ./nquads.y:60
 		{
 			yyVAL.term = yyDollar[1].term
 		}
 	case 13:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./nquads.y:65
+//line ./nquads.y:64
 		{
-			yyVAL.term = NewLiteral(yyDollar[1].str, "", nil)
+			yyVAL.term = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, "", nil)
 		}
 	case 14:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./nquads.y:66
+//line ./nquads.y:65
 		{
-			yyVAL.term = NewLiteral(yyDollar[1].str, yyDollar[2].str, nil)
+			yyVAL.term = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, yyDollar[2].str, nil)
 		}
 	case 15:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./nquads.y:67
+//line ./nquads.y:66
 		{
-			yyVAL.term = NewLiteral(yyDollar[1].str, "", yyDollar[2].term)
+			yyVAL.term = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, "", yyDollar[2].term)
 		}
 	}
 	goto yystack /* stack new state and value */

@@ -40,7 +40,7 @@ func bn(val string) interfaces.IBlankNode {
 }
 
 func l(val string) interfaces.ILiteral {
-	literal := NewLiteral(val, "", nil)
+	literal := NewStringLiteral(val, "")
 	return literal
 }
 
@@ -76,14 +76,14 @@ func TestNQuadsOutput(t *testing.T) {
 			name:  "Blank node subject",
 			input: `_:b1 <p> <o> .`,
 			expectQuads: []interfaces.IQuad{
-				q(bn("b1"), nn("p"), nn("o"), NewDefaultGraph()),
+				q(bn("b0"), nn("p"), nn("o"), NewDefaultGraph()),
 			},
 		},
 		{
 			name:  "Blank node object and graph",
 			input: `<s> <p> _:obj _:graph .`,
 			expectQuads: []interfaces.IQuad{
-				q(nn("s"), nn("p"), bn("obj"), bn("graph")),
+				q(nn("s"), nn("p"), bn("b0"), bn("b1")),
 			},
 		},
 		{
@@ -836,7 +836,7 @@ func TestNQuadsSpec(t *testing.T) {
 func TestNQuadsStreaming(t *testing.T) {
 	t.Run("Chunked input - across lines", func(t *testing.T) {
 		chunked := []string{
-			"<s> <p> ", "<o> .\n",
+			"<", "s> <", "p> ", "<o> .\n",
 			"<s> <p>", " \"l", "iteral\" .\n",
 			"_:b1 <p> _:b2", " .",
 		}

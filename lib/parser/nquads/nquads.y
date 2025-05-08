@@ -3,7 +3,6 @@ package nquads
 
 import (
     "fmt"
-    . "github.com/maartyman/rdfgo/lib/data_model"
     "github.com/maartyman/rdfgo/interfaces"
 )
 %}
@@ -30,7 +29,7 @@ document:
 
 triple_line:
     subject predicate object graph_opt _DOT {
-        quad, err := NewQuad($1, $2, $3, $4)
+        quad, err := yylex.(*lexer).dataFactory.Quad($1, $2, $3, $4)
         if err != nil {
             yylex.Error(fmt.Sprintf("Quad creation failed: %v", err))
             return 1
@@ -56,15 +55,15 @@ object:
     ;
 
 graph_opt:
-      /* empty */ { $$ = NewDefaultGraph() }
+      /* empty */ { $$ = yylex.(*lexer).dataFactory.DefaultGraph() }
     | _NNODE       { $$ = $1 }
     | _BNODE       { $$ = $1 }
     ;
 
 literal:
-      _LITERALVALUE                      { $$ = NewLiteral($1, "", nil) }
-    | _LITERALVALUE _LANGTAG            { $$ = NewLiteral($1, $2, nil) }
-    | _LITERALVALUE _DATATYPE         { $$ = NewLiteral($1, "", $2) }
+      _LITERALVALUE                      { $$ = yylex.(*lexer).dataFactory.Literal($1, "", nil) }
+    | _LITERALVALUE _LANGTAG            { $$ = yylex.(*lexer).dataFactory.Literal($1, $2, nil) }
+    | _LITERALVALUE _DATATYPE         { $$ = yylex.(*lexer).dataFactory.Literal($1, "", $2) }
     ;
 
 %%

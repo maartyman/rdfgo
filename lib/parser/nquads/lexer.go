@@ -8,26 +8,33 @@ import (
 	. "github.com/maartyman/rdfgo/lib/data_model"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 )
 
 // Options holds the options for parsing.
-type Options struct{}
+type Options struct {
+	// DataFactory is the data factory to use for creating RDF terms.
+	DataFactory interfaces.IDataFactory
+}
 
 // Parse parses the input stream and returns a channel of quads and an error channel.
 func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
+	if options.DataFactory == nil {
+		options.DataFactory = NewDataFactory()
+	}
 	yyErrorVerbose = true
 	errChan := make(chan error, 1)
 	tokens := make(chan string, 100)
 	out := make(interfaces.IStream, 1)
 
 	lex := &lexer{
-		tokens:       tokens,
-		output:       out,
-		errChan:      errChan,
-		channelsOpen: true,
+		tokens:         tokens,
+		output:         out,
+		errChan:        errChan,
+		channelsOpen:   true,
+		dataFactory:    options.DataFactory,
+		blankNodeIndex: make(map[string]interfaces.IBlankNode),
 	}
 
 	go func() {
@@ -63,22 +70,63 @@ func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
 }
 
 type lexer struct {
-	tokens       chan string
-	output       interfaces.IStream
-	errChan      chan error
-	lastTok      string
-	channelsOpen bool
-	mux          sync.Mutex
+	tokens         chan string
+	output         interfaces.IStream
+	errChan        chan error
+	lastTok        string
+	channelsOpen   bool
+	mux            sync.Mutex
+	dataFactory    interfaces.IDataFactory
+	blankNodeIndex map[string]interfaces.IBlankNode
 }
 
-func unescapeLiteral(s string) (string, error) {
-	// Wrap in double quotes so strconv.Unquote can decode it
-	unquoted, err := strconv.Unquote(`"` + s + `"`)
-	if err != nil {
-		return "", err
-	}
-	return unquoted, nil
+func unescape(s string) string {
+	s = replacer.Replace(s)
+
+	s = reUnicode.ReplaceAllStringFunc(s, func(m string) string {
+		var code int
+		// We ignore the errors as the regex will only match valid Unicode escape sequences
+		if strings.HasPrefix(m, `\u`) {
+			_, _ = fmt.Sscanf(m, `\u%04x`, &code)
+		} else {
+			_, _ = fmt.Sscanf(m, `\U%08x`, &code)
+		}
+		return string(rune(code))
+	})
+
+	return s
 }
+
+var reUnicode = regexp.MustCompile(`\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})`)
+var replacer = strings.NewReplacer(
+	`\\`, `\`,
+	`\"`, `"`,
+	`\'`, `'`,
+	`\n`, "\n",
+	`\t`, "\t",
+	`\r`, "\r",
+	`\b`, "\b",
+	`\f`, "\f",
+	`\_`, "_",
+	`\~`, "~",
+	`\.`, ".",
+	`\-`, "-",
+	`\!`, "!",
+	`\$`, "$",
+	`\&`, "&",
+	`\(`, "(",
+	`\)`, ")",
+	`\*`, "*",
+	`\+`, "+",
+	`\,`, ",",
+	`\;`, ";",
+	`\=`, "=",
+	`\/`, "/",
+	`\?`, "?",
+	`\#`, "#",
+	`\@`, "@",
+	`\%`, "%",
+)
 
 func (l *lexer) Lex(lval *yySymType) int {
 	tok, ok := <-l.tokens
@@ -90,10 +138,18 @@ func (l *lexer) Lex(lval *yySymType) int {
 
 	switch {
 	case strings.HasPrefix(tok, "<") && strings.HasSuffix(tok, ">"):
-		lval.term = NewNamedNode(tok)
+		lval.term = l.dataFactory.NamedNode(unescape(tok[1 : len(tok)-1]))
 		return _NNODE
 	case strings.HasPrefix(tok, "_:"):
-		lval.term = NewBlankNode(tok)
+		// Check if the blank node is already created
+		if node, ok := l.blankNodeIndex[tok]; ok {
+			lval.term = node
+			return _BNODE
+		}
+		// Create a new blank node
+		bn := l.dataFactory.BlankNode("")
+		l.blankNodeIndex[tok] = bn
+		lval.term = bn
 		return _BNODE
 	case strings.HasPrefix(tok, "."):
 		return _DOT
@@ -101,15 +157,11 @@ func (l *lexer) Lex(lval *yySymType) int {
 		lval.str = tok[1:]
 		return _LANGTAG
 	case strings.HasPrefix(tok, "^^"):
-		lval.term = NewNamedNode(tok[2:])
+		lval.term = l.dataFactory.NamedNode(tok[2:])
 		return _DATATYPE
 	case strings.HasPrefix(tok, "\"") && strings.HasSuffix(tok, "\""):
 		raw := tok[1 : len(tok)-1]
-		unescaped, err := unescapeLiteral(raw)
-		if err != nil {
-			return _ERROR
-		}
-		lval.str = unescaped
+		lval.str = unescape(raw)
 		return _LITERALVALUE
 	default:
 		return _ERROR
