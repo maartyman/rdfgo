@@ -16,10 +16,15 @@ import (
 type Options struct {
 	// BaseIRI is the base URI to use for resolving relative URIs.
 	BaseIRI string
+	// DataFactory is the data factory to use for creating RDF terms.
+	DataFactory interfaces.IDataFactory
 }
 
 // Parse parses the input stream and returns a channel of quads and an error channel.
 func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
+	if options.DataFactory == nil {
+		options.DataFactory = NewDataFactory()
+	}
 	yyErrorVerbose = true
 	errChan := make(chan error, 1)
 	tokens := make(chan token, 100)
@@ -33,6 +38,7 @@ func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
 		prefixes:     prefixes,
 		base:         options.BaseIRI,
 		channelsOpen: true,
+		dataFactory:  options.DataFactory,
 	}
 
 	go func() {
@@ -74,10 +80,10 @@ type lexer struct {
 	prefixes         map[string]string
 	lastTok          string
 	base             string
-	blankNodeCounter int
 	multiLineLiteral string
 	channelsOpen     bool
 	mux              sync.Mutex
+	dataFactory      interfaces.IDataFactory
 }
 
 type token struct {
@@ -102,13 +108,12 @@ func (l *lexer) Lex(lval *yySymType) int {
 		} else {
 			datatypeIRI = IRI.XSD.Integer
 		}
-		lval.literal = NewLiteral(tok.Val, "", datatypeIRI)
+		lval.literal = l.dataFactory.Literal(tok.Val, "", datatypeIRI)
 	case _LITERAL:
 		// parse literal, lang and datatype
-		unescaped := unescapeLiteral(tok.Val[1 : len(tok.Val)-1])
-		lval.str = unescaped
-	case _PNAME, _PVALUE, _NNODE, _BNODE, _LANGTAG, _DATATYPE:
-		lval.str = tok.Val
+		lval.str = unescape(tok.Val[1 : len(tok.Val)-1])
+	case _PNAME, _PVALUE, _NNODE, _BNODE, _LANGTAG:
+		lval.str = unescape(tok.Val)
 	}
 	return tok.Type
 }
@@ -126,7 +131,7 @@ func (l *lexer) Error(e string) {
 	l.mux.Unlock()
 }
 
-func unescapeLiteral(s string) string {
+func unescape(s string) string {
 	s = replacer.Replace(s)
 
 	s = reUnicode.ReplaceAllStringFunc(s, func(m string) string {
@@ -143,10 +148,21 @@ func unescapeLiteral(s string) string {
 	return s
 }
 
-func (l *lexer) newBlankNode() interfaces.IBlankNode {
-	id := fmt.Sprintf("b%d", l.blankNodeCounter)
-	l.blankNodeCounter++
-	return NewBlankNode(id)
+func processPrefixed(str string, tokenChan chan token) {
+	index := strings.Index(str, ":")
+	if index == -1 {
+		tokenChan <- token{_ERROR, str}
+		return
+	}
+	tokenChan <- token{_PNAME, str[:index]}
+	if index != len(str)-1 {
+		if str[len(str)-1] == '.' {
+			tokenChan <- token{_PVALUE, str[index+1 : len(str)-1]}
+			tokenChan <- token{_DOT, "."}
+		} else {
+			tokenChan <- token{_PVALUE, str[index+1:]}
+		}
+	}
 }
 
 func (l *lexer) tokenizeLine(line string) {
@@ -187,7 +203,12 @@ func (l *lexer) tokenizeLine(line string) {
 		case rt == "false":
 			l.tokens <- token{_FALSE, rt}
 		case strings.HasPrefix(rt, `^^`):
-			l.tokens <- token{_DATATYPE, rt[2:]}
+			l.tokens <- token{_DATATYPE, rt}
+			if rt[2] == '<' {
+				l.tokens <- token{_NNODE, rt[3 : len(rt)-1]}
+			} else {
+				processPrefixed(rt[2:], l.tokens)
+			}
 		case strings.HasPrefix(rt, `@`):
 			l.tokens <- token{_LANGTAG, rt[1:]}
 		case strings.HasPrefix(rt, "<") && strings.HasSuffix(rt, ">"):
@@ -213,23 +234,8 @@ func (l *lexer) tokenizeLine(line string) {
 			continue
 		case (firstChar >= '0' && firstChar <= '9') || firstChar == '-' || firstChar == '+' || firstChar == '.':
 			l.tokens <- token{_NUMBER, rt}
-		case strings.Contains(rt, ":"):
-			index := strings.Index(rt, ":")
-			if index > 0 && rt[index-1] == '.' {
-				l.tokens <- token{_ERROR, rt}
-			}
-			l.tokens <- token{_PNAME, rt[:index]}
-			if index != len(rt)-1 {
-				if rt[len(rt)-1] == '.' {
-					l.tokens <- token{_PVALUE, rt[index+1 : len(rt)-1]}
-					l.tokens <- token{_DOT, "."}
-				} else {
-					l.tokens <- token{_PVALUE, rt[index+1:]}
-				}
-			}
 		default:
-			// fallback if needed
-			l.tokens <- token{_ERROR, rt}
+			processPrefixed(rt, l.tokens)
 		}
 	}
 }
@@ -249,7 +255,7 @@ var (
 	langTagPattern                     = `@[a-zA-Z]+(?:-[a-zA-Z0-9]+)*`
 	blankNodePattern                   = `_:[\S]+`
 	symbolPattern                      = `[\.,;\[\]\(\)]`
-	prefixedNamePattern                = `(?:[^\(\)\s,;\[\]@\\])*:(?:\\[_~\.\-!$&'\(\)*+,;=/?#@%]|[^\(\)\s,;\[\]@\\])*`
+	prefixedNamePattern                = `(?:[^\(\)\s,;\[\]@\\#])*:(?:\\[_~\.\-!$&'\(\)*+,;=/?#@%]|[^\(\)\s,;\[\]@\\#])*`
 	keywordsPattern                    = `(?i)prefix|(?i)base|@prefix|@base|a`
 	commentPattern                     = `#.*`
 	fallbackPattern                    = `[^\s]+`
@@ -285,5 +291,24 @@ var (
 		`\r`, "\r",
 		`\b`, "\b",
 		`\f`, "\f",
+		`\_`, "_",
+		`\~`, "~",
+		`\.`, ".",
+		`\-`, "-",
+		`\!`, "!",
+		`\$`, "$",
+		`\&`, "&",
+		`\(`, "(",
+		`\)`, ")",
+		`\*`, "*",
+		`\+`, "+",
+		`\,`, ",",
+		`\;`, ";",
+		`\=`, "=",
+		`\/`, "/",
+		`\?`, "?",
+		`\#`, "#",
+		`\@`, "@",
+		`\%`, "%",
 	)
 )

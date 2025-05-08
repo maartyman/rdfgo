@@ -43,22 +43,22 @@ const _BNODE = 57349
 const _NNODE = 57350
 const _LITERAL = 57351
 const _LANGTAG = 57352
-const _DATATYPE = 57353
-const _SPARQLPREFIX = 57354
-const _SPARQLBASE = 57355
-const _DOT = 57356
-const _SEMICOLON = 57357
-const _COMMA = 57358
-const _PREFIX = 57359
-const _BASE = 57360
-const _ERROR = 57361
-const _A = 57362
-const _BRACKETOPEN = 57363
-const _BRACKETCLOSE = 57364
-const _TRUE = 57365
-const _FALSE = 57366
-const _LPAREN = 57367
-const _RPAREN = 57368
+const _SPARQLPREFIX = 57353
+const _SPARQLBASE = 57354
+const _DOT = 57355
+const _SEMICOLON = 57356
+const _COMMA = 57357
+const _PREFIX = 57358
+const _BASE = 57359
+const _ERROR = 57360
+const _A = 57361
+const _BRACKETOPEN = 57362
+const _BRACKETCLOSE = 57363
+const _TRUE = 57364
+const _FALSE = 57365
+const _LPAREN = 57366
+const _RPAREN = 57367
+const _DATATYPE = 57368
 
 var yyToknames = [...]string{
 	"$end",
@@ -71,7 +71,6 @@ var yyToknames = [...]string{
 	"_NNODE",
 	"_LITERAL",
 	"_LANGTAG",
-	"_DATATYPE",
 	"_SPARQLPREFIX",
 	"_SPARQLBASE",
 	"_DOT",
@@ -87,6 +86,7 @@ var yyToknames = [...]string{
 	"_FALSE",
 	"_LPAREN",
 	"_RPAREN",
+	"_DATATYPE",
 }
 
 var yyStatenames = [...]string{}
@@ -95,7 +95,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line ./turtle.y:277
+//line ./turtle.y:278
 
 //line yacctab:1
 var yyExca = [...]int8{
@@ -106,34 +106,35 @@ var yyExca = [...]int8{
 
 const yyPrivate = 57344
 
-const yyLast = 91
+const yyLast = 110
 
 var yyAct = [...]int8{
-	35, 49, 21, 36, 47, 12, 38, 34, 14, 55,
-	23, 54, 61, 24, 48, 23, 45, 17, 24, 37,
-	16, 44, 62, 50, 17, 45, 17, 16, 37, 16,
-	44, 53, 46, 11, 19, 42, 43, 18, 33, 25,
-	52, 30, 11, 56, 42, 43, 18, 57, 58, 51,
-	29, 59, 23, 60, 28, 24, 20, 32, 17, 27,
-	13, 16, 50, 64, 63, 7, 10, 26, 31, 17,
-	8, 9, 16, 17, 11, 41, 16, 15, 18, 48,
-	40, 4, 5, 3, 25, 2, 1, 39, 25, 22,
-	6,
+	36, 38, 12, 14, 49, 47, 35, 23, 24, 21,
+	28, 29, 23, 24, 57, 34, 45, 17, 55, 37,
+	16, 44, 54, 61, 48, 16, 62, 51, 52, 50,
+	58, 53, 11, 46, 42, 43, 18, 33, 17, 17,
+	19, 16, 16, 17, 20, 17, 16, 48, 16, 23,
+	24, 56, 25, 25, 60, 30, 31, 25, 59, 63,
+	64, 32, 27, 26, 4, 65, 66, 3, 50, 45,
+	17, 2, 37, 16, 44, 41, 40, 15, 5, 1,
+	39, 22, 6, 0, 0, 11, 0, 42, 43, 18,
+	17, 0, 13, 16, 0, 0, 7, 10, 0, 0,
+	0, 8, 9, 0, 0, 11, 0, 0, 0, 18,
 }
 
 var yyPact = [...]int16{
-	-1000, 53, -1000, -1000, -1000, 20, 68, 62, 54, 46,
-	42, 19, -1000, -1000, -1000, -1000, -1000, 51, 12, -1000,
-	18, -1, 21, -1000, -1000, -1000, 41, 32, 17, -1000,
-	-1000, -11, -1000, -1000, -17, 21, -1000, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, 37, -1000, -1000, -1000, 64, -1000,
-	-4, -1000, 8, -1000, -1000, -1000, -1000, -1000, -1000, -1,
-	-1000, 21, -1000, -1000, -1000,
+	-1000, 85, -1000, -1000, -1000, 27, 38, 58, 57, 17,
+	17, 34, -1000, -1000, -1000, -1000, -1000, 55, 12, -1000,
+	20, 10, 65, -1000, -1000, -1000, 17, 17, 18, -1000,
+	-1000, 1, -1000, -1000, -7, 65, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, 4, -1000, -1000, -1000, 33, -1000,
+	8, -1000, 13, -1000, -1000, -1000, -1000, -1000, 40, 10,
+	-1000, 65, -1000, -1000, -1000, -1000, -1000,
 }
 
 var yyPgo = [...]int8{
-	0, 90, 0, 6, 89, 3, 56, 1, 4, 2,
-	80, 75, 87, 7, 86, 85, 83, 81,
+	0, 82, 6, 1, 81, 0, 44, 4, 5, 9,
+	76, 75, 80, 15, 79, 71, 67, 64,
 }
 
 var yyR1 = [...]int8{
@@ -141,7 +142,7 @@ var yyR1 = [...]int8{
 	16, 6, 9, 8, 8, 8, 4, 4, 4, 7,
 	7, 11, 11, 13, 13, 1, 1, 1, 1, 1,
 	2, 2, 2, 2, 2, 2, 12, 12, 12, 12,
-	12, 12, 10, 10, 3, 3, 5,
+	12, 12, 12, 10, 10, 3, 3, 5,
 }
 
 var yyR2 = [...]int8{
@@ -149,27 +150,27 @@ var yyR2 = [...]int8{
 	3, 2, 2, 0, 3, 2, 1, 1, 1, 1,
 	3, 2, 3, 1, 2, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-	2, 1, 2, 3, 2, 1, 1,
+	3, 3, 1, 2, 3, 2, 1, 1,
 }
 
 var yyChk = [...]int16{
-	-1000, -14, -15, -16, -17, -10, -1, 12, 17, 18,
-	13, 21, -5, 7, -3, -11, 8, 5, 25, 14,
-	-6, -9, -4, -5, -3, 20, 5, 5, 8, 8,
-	22, -6, 6, 26, -13, -2, -5, 7, -3, -12,
-	-10, -11, 23, 24, 9, 4, 14, -8, 15, -7,
-	-2, 8, 8, 14, 22, 26, -13, 10, 11, -9,
-	-8, 16, 14, -8, -7,
+	-1000, -14, -15, -16, -17, -10, -1, 11, 16, 17,
+	12, 20, -5, 7, -3, -11, 8, 5, 24, 13,
+	-6, -9, -4, -5, -3, 19, 5, 5, -5, -5,
+	21, -6, 6, 25, -13, -2, -5, 7, -3, -12,
+	-10, -11, 22, 23, 9, 4, 13, -8, 14, -7,
+	-2, -5, -5, 13, 21, 25, -13, 10, 26, -9,
+	-8, 15, 13, -5, -3, -8, -7,
 }
 
 var yyDef = [...]int8{
 	1, -2, 2, 3, 4, 28, 0, 0, 0, 0,
-	0, 0, 25, 26, 27, 29, 46, 45, 0, 9,
+	0, 0, 25, 26, 27, 29, 47, 46, 0, 9,
 	0, 13, 0, 16, 17, 18, 0, 0, 0, 8,
-	42, 0, 44, 21, 0, 23, 30, 31, 32, 33,
-	34, 35, 36, 37, 38, 41, 10, 11, 13, 12,
-	19, 5, 0, 7, 43, 22, 24, 39, 40, 13,
-	15, 0, 6, 14, 20,
+	43, 0, 45, 21, 0, 23, 30, 31, 32, 33,
+	34, 35, 36, 37, 38, 42, 10, 11, 13, 12,
+	19, 5, 0, 7, 44, 22, 24, 39, 0, 13,
+	15, 0, 6, 40, 41, 14, 20,
 }
 
 var yyTok1 = [...]int8{
@@ -527,25 +528,25 @@ yydefault:
 		yyDollar = yyS[yypt-3 : yypt+1]
 //line ./turtle.y:55
 		{
-			yylex.(*lexer).prefixes[yyDollar[2].str] = yyDollar[3].str
+			yylex.(*lexer).prefixes[yyDollar[2].str] = yyDollar[3].term.GetValue()
 		}
 	case 6:
 		yyDollar = yyS[yypt-4 : yypt+1]
 //line ./turtle.y:58
 		{
-			yylex.(*lexer).prefixes[yyDollar[2].str] = yyDollar[3].str
+			yylex.(*lexer).prefixes[yyDollar[2].str] = yyDollar[3].term.GetValue()
 		}
 	case 7:
 		yyDollar = yyS[yypt-3 : yypt+1]
 //line ./turtle.y:61
 		{
-			yylex.(*lexer).base = yyDollar[2].str
+			yylex.(*lexer).base = yyDollar[2].term.GetValue()
 		}
 	case 8:
 		yyDollar = yyS[yypt-2 : yypt+1]
 //line ./turtle.y:64
 		{
-			yylex.(*lexer).base = yyDollar[2].str
+			yylex.(*lexer).base = yyDollar[2].term.GetValue()
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
@@ -560,7 +561,7 @@ yydefault:
 //line ./turtle.y:75
 		{
 			for _, po := range yyDollar[2].predObj.pairs {
-				quad, err := NewQuad(yyDollar[1].term, po.Predicate, po.Object, NewDefaultGraph())
+				quad, err := yylex.(*lexer).dataFactory.Quad(yyDollar[1].term, po.Predicate, po.Object, yylex.(*lexer).dataFactory.DefaultGraph())
 				if err != nil {
 					yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 					return 1
@@ -646,10 +647,10 @@ yydefault:
 		{
 			triples := []interfaces.IQuad{}
 			var head, prev interfaces.IBlankNode
-			prev = yylex.(*lexer).newBlankNode()
+			prev = yylex.(*lexer).dataFactory.BlankNode("")
 			for i, item := range yyDollar[2].objectList {
 				curr := prev
-				quad, err := NewQuad(curr, IRI.RDF.First, item, NewDefaultGraph())
+				quad, err := yylex.(*lexer).dataFactory.Quad(curr, IRI.RDF.First, item, yylex.(*lexer).dataFactory.DefaultGraph())
 				if err != nil {
 					yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 					return 1
@@ -660,9 +661,9 @@ yydefault:
 				if i == len(yyDollar[2].objectList)-1 {
 					rest = IRI.RDF.Nil
 				} else {
-					rest = yylex.(*lexer).newBlankNode()
+					rest = yylex.(*lexer).dataFactory.BlankNode("")
 				}
-				quad, err = NewQuad(curr, IRI.RDF.Rest, rest, NewDefaultGraph())
+				quad, err = yylex.(*lexer).dataFactory.Quad(curr, IRI.RDF.Rest, rest, yylex.(*lexer).dataFactory.DefaultGraph())
 				if err != nil {
 					yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 					return 1
@@ -699,7 +700,7 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 //line ./turtle.y:180
 		{
-			yyVAL.term = NewBlankNode(yyDollar[1].str)
+			yyVAL.term = yylex.(*lexer).dataFactory.BlankNode("")
 		}
 	case 27:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -735,7 +736,7 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 //line ./turtle.y:198
 		{
-			yyVAL.term = NewBlankNode(yyDollar[1].str)
+			yyVAL.term = yylex.(*lexer).dataFactory.BlankNode("")
 		}
 	case 32:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -771,53 +772,59 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 //line ./turtle.y:216
 		{
-			yyVAL.literal = NewLiteral("true", "", IRI.XSD.Boolean)
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal("true", "", IRI.XSD.Boolean)
 		}
 	case 37:
 		yyDollar = yyS[yypt-1 : yypt+1]
 //line ./turtle.y:217
 		{
-			yyVAL.literal = NewLiteral("false", "", IRI.XSD.Boolean)
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal("false", "", IRI.XSD.Boolean)
 		}
 	case 38:
 		yyDollar = yyS[yypt-1 : yypt+1]
 //line ./turtle.y:218
 		{
-			yyVAL.literal = NewLiteral(yyDollar[1].str, "", nil)
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, "", nil)
 		}
 	case 39:
 		yyDollar = yyS[yypt-2 : yypt+1]
 //line ./turtle.y:219
 		{
-			yyVAL.literal = NewLiteral(yyDollar[1].str, yyDollar[2].str, nil)
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, yyDollar[2].str, nil)
 		}
 	case 40:
-		yyDollar = yyS[yypt-2 : yypt+1]
+		yyDollar = yyS[yypt-3 : yypt+1]
 //line ./turtle.y:220
 		{
-			yyVAL.literal = NewLiteral(yyDollar[1].str, "", NewNamedNode(yyDollar[2].str))
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, "", yyDollar[3].term)
 		}
 	case 41:
-		yyDollar = yyS[yypt-1 : yypt+1]
+		yyDollar = yyS[yypt-3 : yypt+1]
 //line ./turtle.y:221
+		{
+			yyVAL.literal = yylex.(*lexer).dataFactory.Literal(yyDollar[1].str, "", yyDollar[3].term)
+		}
+	case 42:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./turtle.y:222
 		{
 			yyVAL.literal = yyDollar[1].literal
 		}
-	case 42:
+	case 43:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./turtle.y:225
+//line ./turtle.y:226
 		{
-			yyVAL.blankNodePO.node = yylex.(*lexer).newBlankNode()
+			yyVAL.blankNodePO.node = yylex.(*lexer).dataFactory.BlankNode("")
 			yyVAL.blankNodePO.triples = nil
 		}
-	case 43:
+	case 44:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./turtle.y:229
+//line ./turtle.y:230
 		{
-			bnode := yylex.(*lexer).newBlankNode()
+			bnode := yylex.(*lexer).dataFactory.BlankNode("")
 			var quads []interfaces.IQuad
 			for _, po := range yyDollar[2].predObj.pairs {
-				q, err := NewQuad(bnode, po.Predicate, po.Object, NewDefaultGraph())
+				q, err := yylex.(*lexer).dataFactory.Quad(bnode, po.Predicate, po.Object, yylex.(*lexer).dataFactory.DefaultGraph())
 				if err != nil {
 					yylex.(*lexer).Error(fmt.Sprintf("blank node quad error: %v", err))
 					return 1
@@ -827,31 +834,31 @@ yydefault:
 			yyVAL.blankNodePO.node = bnode
 			yyVAL.blankNodePO.triples = quads
 		}
-	case 44:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./turtle.y:245
-		{
-			prefix := yylex.(*lexer).prefixes[yyDollar[1].str]
-			if prefix == "" {
-				yylex.(*lexer).Error(fmt.Sprintf("prefix not found: %s", yyDollar[1].str))
-				return 1
-			}
-			yyVAL.term = NewNamedNode(prefix + yyDollar[2].str)
-		}
 	case 45:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./turtle.y:253
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line ./turtle.y:246
 		{
 			prefix := yylex.(*lexer).prefixes[yyDollar[1].str]
 			if prefix == "" {
 				yylex.(*lexer).Error(fmt.Sprintf("prefix not found: %s", yyDollar[1].str))
 				return 1
 			}
-			yyVAL.term = NewNamedNode(prefix)
+			yyVAL.term = yylex.(*lexer).dataFactory.NamedNode(prefix + yyDollar[2].str)
 		}
 	case 46:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./turtle.y:264
+//line ./turtle.y:254
+		{
+			prefix := yylex.(*lexer).prefixes[yyDollar[1].str]
+			if prefix == "" {
+				yylex.(*lexer).Error(fmt.Sprintf("prefix not found: %s", yyDollar[1].str))
+				return 1
+			}
+			yyVAL.term = yylex.(*lexer).dataFactory.NamedNode(prefix)
+		}
+	case 47:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./turtle.y:265
 		{
 			if !strings.Contains(yyDollar[1].str, ":") && !strings.HasPrefix(yyDollar[1].str, "/") {
 				base := yylex.(*lexer).base
@@ -859,9 +866,9 @@ yydefault:
 					yylex.(*lexer).Error("@base not defined")
 					return 1
 				}
-				yyVAL.term = NewNamedNode(base + yyDollar[1].str)
+				yyVAL.term = yylex.(*lexer).dataFactory.NamedNode(base + yyDollar[1].str)
 			} else {
-				yyVAL.term = NewNamedNode(yyDollar[1].str)
+				yyVAL.term = yylex.(*lexer).dataFactory.NamedNode(yyDollar[1].str)
 			}
 		}
 	}

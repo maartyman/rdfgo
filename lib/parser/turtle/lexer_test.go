@@ -137,7 +137,7 @@ func bn(val string) interfaces.IBlankNode {
 }
 
 func l(val string) interfaces.ILiteral {
-	literal := NewLiteral(val, "", nil)
+	literal := NewStringLiteral(val, "")
 	return literal
 }
 

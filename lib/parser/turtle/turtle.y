@@ -30,8 +30,8 @@ type predicateObject struct {
 }
 
 %token <literal> _NUMBER
-%token <str> _PNAME _PVALUE _BNODE _NNODE _LITERAL _LANGTAG _DATATYPE _SPARQLPREFIX _SPARQLBASE
-%token _DOT _SEMICOLON _COMMA _PREFIX _BASE _ERROR _A _BRACKETOPEN _BRACKETCLOSE _TRUE _FALSE _LPAREN _RPAREN
+%token <str> _PNAME _PVALUE _BNODE _NNODE _LITERAL _LANGTAG _SPARQLPREFIX _SPARQLBASE
+%token _DOT _SEMICOLON _COMMA _PREFIX _BASE _ERROR _A _BRACKETOPEN _BRACKETCLOSE _TRUE _FALSE _LPAREN _RPAREN _DATATYPE
 
 %type <term> subject object prefixed verb fullNNode
 %type <predObj> predicateObjectList objectList predicateObjectTail predicateObjectPair
@@ -52,17 +52,17 @@ statement:
 	;
 
 prefixDecl:
-	_SPARQLPREFIX _PNAME _NNODE {
-		yylex.(*lexer).prefixes[$2] = $3
+	_SPARQLPREFIX _PNAME fullNNode {
+		yylex.(*lexer).prefixes[$2] = $3.GetValue()
 	}
-	| _PREFIX _PNAME _NNODE _DOT {
-		yylex.(*lexer).prefixes[$2] = $3
+	| _PREFIX _PNAME fullNNode _DOT {
+		yylex.(*lexer).prefixes[$2] = $3.GetValue()
 	}
-	| _BASE _NNODE _DOT {
-		yylex.(*lexer).base = $2
+	| _BASE fullNNode _DOT {
+		yylex.(*lexer).base = $2.GetValue()
 	}
-	| _SPARQLBASE _NNODE {
-		yylex.(*lexer).base = $2
+	| _SPARQLBASE fullNNode {
+		yylex.(*lexer).base = $2.GetValue()
 	}
 	;
 
@@ -74,7 +74,7 @@ triples:
 	}
 	| subject predicateObjectList _DOT {
 		for _, po := range $2.pairs {
-			quad, err := NewQuad($1, po.Predicate, po.Object, NewDefaultGraph())
+			quad, err := yylex.(*lexer).dataFactory.Quad($1, po.Predicate, po.Object, yylex.(*lexer).dataFactory.DefaultGraph())
 			if err != nil {
 				yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 				return 1
@@ -135,10 +135,10 @@ collection:
 	| _LPAREN objectListItems _RPAREN {
 		triples := []interfaces.IQuad{}
 		var head, prev interfaces.IBlankNode
-		prev = yylex.(*lexer).newBlankNode()
+		prev = yylex.(*lexer).dataFactory.BlankNode("")
 		for i, item := range $2 {
 			curr := prev
-			quad, err := NewQuad(curr, IRI.RDF.First, item, NewDefaultGraph())
+			quad, err := yylex.(*lexer).dataFactory.Quad(curr, IRI.RDF.First, item, yylex.(*lexer).dataFactory.DefaultGraph())
 			if err != nil {
 				yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 				return 1
@@ -149,9 +149,9 @@ collection:
 			if i == len($2)-1 {
 				rest = IRI.RDF.Nil
 			} else {
-				rest = yylex.(*lexer).newBlankNode()
+				rest = yylex.(*lexer).dataFactory.BlankNode("")
 			}
-			quad, err = NewQuad(curr, IRI.RDF.Rest, rest, NewDefaultGraph())
+			quad, err = yylex.(*lexer).dataFactory.Quad(curr, IRI.RDF.Rest, rest, yylex.(*lexer).dataFactory.DefaultGraph())
 			if err != nil {
 				yylex.(*lexer).Error(fmt.Sprintf("error constructing quad: %v", err))
 				return 1
@@ -177,7 +177,7 @@ objectListItems:
 
 subject:
 	fullNNode { $$ = $1 }
-	| _BNODE { $$ = NewBlankNode($1) }
+	| _BNODE { $$ = yylex.(*lexer).dataFactory.BlankNode("") }
 	| prefixed { $$ = $1 }
 	| blankNodePropertyList {
 		for _, q := range $1.triples {
@@ -195,7 +195,7 @@ subject:
 
 object:
 	fullNNode { $$ = $1 }
-	| _BNODE { $$ = NewBlankNode($1) }
+	| _BNODE { $$ = yylex.(*lexer).dataFactory.BlankNode("") }
 	| prefixed { $$ = $1 }
 	| literal { $$ = $1 }
 	| blankNodePropertyList {
@@ -213,24 +213,25 @@ object:
 	;
 
 literal:
-	_TRUE { $$ = NewLiteral("true", "", IRI.XSD.Boolean) }
-	| _FALSE { $$ = NewLiteral("false", "", IRI.XSD.Boolean) }
-	| _LITERAL { $$ = NewLiteral($1, "", nil) }
-	| _LITERAL _LANGTAG { $$ = NewLiteral($1, $2, nil) }
-	| _LITERAL _DATATYPE { $$ = NewLiteral($1, "", NewNamedNode($2)) }
+	_TRUE { $$ = yylex.(*lexer).dataFactory.Literal("true", "", IRI.XSD.Boolean) }
+	| _FALSE { $$ = yylex.(*lexer).dataFactory.Literal("false", "", IRI.XSD.Boolean) }
+	| _LITERAL { $$ = yylex.(*lexer).dataFactory.Literal($1, "", nil) }
+	| _LITERAL _LANGTAG { $$ = yylex.(*lexer).dataFactory.Literal($1, $2, nil) }
+	| _LITERAL _DATATYPE fullNNode { $$ = yylex.(*lexer).dataFactory.Literal($1, "", $3) }
+	| _LITERAL _DATATYPE prefixed { $$ = yylex.(*lexer).dataFactory.Literal($1, "", $3) }
 	| _NUMBER { $$ = $1 }
 	;
 
 blankNodePropertyList:
 	_BRACKETOPEN _BRACKETCLOSE {
-		$$.node = yylex.(*lexer).newBlankNode()
+		$$.node = yylex.(*lexer).dataFactory.BlankNode("")
 		$$.triples = nil
 	}
 	| _BRACKETOPEN predicateObjectList _BRACKETCLOSE {
-		bnode := yylex.(*lexer).newBlankNode()
+		bnode := yylex.(*lexer).dataFactory.BlankNode("")
 		var quads []interfaces.IQuad
 		for _, po := range $2.pairs {
-			q, err := NewQuad(bnode, po.Predicate, po.Object, NewDefaultGraph())
+			q, err := yylex.(*lexer).dataFactory.Quad(bnode, po.Predicate, po.Object, yylex.(*lexer).dataFactory.DefaultGraph())
 			if err != nil {
 				yylex.(*lexer).Error(fmt.Sprintf("blank node quad error: %v", err))
 				return 1
@@ -248,7 +249,7 @@ prefixed:
 			yylex.(*lexer).Error(fmt.Sprintf("prefix not found: %s", $1))
 			return 1
 		}
-		$$ = NewNamedNode(prefix + $2)
+		$$ = yylex.(*lexer).dataFactory.NamedNode(prefix + $2)
 	}
 	| _PNAME {
 		prefix := yylex.(*lexer).prefixes[$1]
@@ -256,7 +257,7 @@ prefixed:
 			yylex.(*lexer).Error(fmt.Sprintf("prefix not found: %s", $1))
 			return 1
 		}
-		$$ = NewNamedNode(prefix)
+		$$ = yylex.(*lexer).dataFactory.NamedNode(prefix)
 	}
 	;
 
@@ -268,9 +269,9 @@ fullNNode:
 				yylex.(*lexer).Error("@base not defined")
 				return 1
 			}
-			$$ = NewNamedNode(base + $1)
+			$$ = yylex.(*lexer).dataFactory.NamedNode(base + $1)
 		} else {
-			$$ = NewNamedNode($1)
+			$$ = yylex.(*lexer).dataFactory.NamedNode($1)
 		}
 	}
 
