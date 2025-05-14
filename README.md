@@ -24,25 +24,25 @@ Terms can be created using the following methods:
 package main
 
 import (
-	. "github.com/maartyman/rdfgo/lib/data_model"
+	"github.com/maartyman/rdfgo"
 )
 
 func main() {
-    NewNamedNode("http://example.com/s")
-    NewBlankNode("1")
-    NewDefaultGraph()
-    NewLiteral("string", "en", IRI.XSD.String)
-    NewStringLiteral("string", "en")
-    NewDecimalLiteral(0.1)
-    NewBooleanLiteral(true)
-    NewDoubleLiteral(0.1)
-    NewIntegerLiteral(1)
-    NewVariable("s")
+	rdfgo.NewNamedNode("http://example.com/s")
+	rdfgo.NewBlankNode("1")
+	rdfgo.NewDefaultGraph()
+	rdfgo.NewLiteral("string", "en", rdfgo.IRI.XSD.String)
+	rdfgo.NewStringLiteral("string", "en")
+	rdfgo.NewDecimalLiteral(0.1)
+	rdfgo.NewBooleanLiteral(true)
+	rdfgo.NewDoubleLiteral(0.1)
+	rdfgo.NewIntegerLiteral(1)
+	rdfgo.NewVariable("s")
     
-    subject := NewNamedNode("http://example.com/s")
-    predicate := NewNamedNode("http://example.com/p")
-    object := NewStringLiteral("string", "en")
-    quad, err := NewQuad(subject, predicate, object, nil)
+    subject := rdfgo.NewNamedNode("http://example.com/s")
+    predicate := rdfgo.NewNamedNode("http://example.com/p")
+    object := rdfgo.NewStringLiteral("string", "en")
+    quad, err := rdfgo.NewQuad(subject, predicate, object, nil)
     if err != nil {
         println(err)
     }
@@ -51,7 +51,7 @@ func main() {
 
 Terms have the following methods:
 ```go
-namedNode := NewNamedNode("http://example.com/s")
+namedNode := rdfgo.NewNamedNode("http://example.com/s")
 
 namedNode.Equals(namedNode) // Check if two terms are equal
 namedNode.GetType() // Get the term type, returns `TermType` enum
@@ -68,16 +68,59 @@ termType.EnumIndex() // Get the index of the enum
 
 Quad has the following methods to extract the subject, predicate, object and graph:
 ```go
-quad := NewQuad(
-	NewNamedNode("http://example.com/s"),
-	NewNamedNode("http://example.com/p"),
-	NewStringLiteral("string", "en"),
+quad := rdfgo.NewQuad(
+    rdfgo.NewNamedNode("http://example.com/s"),
+    rdfgo.NewNamedNode("http://example.com/p"),
+    rdfgo.NewStringLiteral("string", "en"),
 	nil
 )
 quad.GetSubject()
 quad.GetPredicate()
 quad.GetObject()
 quad.GetGraph()
+```
+
+### Parser
+The RDF parser can parse turtle, n-triples, and n-quads formats.
+One can use the parser to parse a file or an io.reader.
+```go
+package main
+
+import (
+	"github.com/maartyman/rdfgo"
+	"os"
+	"strings"
+)
+
+func main() {
+	// Parse a file
+	quads, errChan := rdfgo.ParseFile("file.ttl", rdfgo.Options{
+		// you can set the base IRI here
+		BaseIRI: "http://example.com/",
+	})
+	...
+	
+	// Parse a reader (or string)
+	data, err := os.ReadFile("file.ttl")
+	if err != nil {
+		panic(err)
+	}
+	reader := strings.NewReader(string(data))
+	quads, errChan := rdfgo.Parse(reader, rdfgo.Options{
+		// The format can be "turtle", "n-triples", "n-quads", "ntriples" or "nquads" (case-insensitive)
+		Format: "turtle",
+	})
+	if err, ok := <-errChan; ok {
+		panic(err)
+	}
+	
+	// One can then for example import the quads into a store
+	store := rdfgo.NewStore()
+	store.Import(quads)
+	
+	// or count them
+	rdfgo.Stream(quads).Count()
+}
 ```
 
 ### Stream
@@ -88,26 +131,24 @@ The Stream needs to be converted to an IStream interface for the store to import
 package main
 
 import (
-	"github.com/maartyman/rdfgo/interfaces"
-	. "github.com/maartyman/rdfgo/lib/data_model"
-	. "github.com/maartyman/rdfgo/lib/stream"
+	"github.com/maartyman/rdfgo"
 )
 
 func main() {
-	quad, _ := NewQuad(
-		NewNamedNode("http://example.com/s"),
-		NewNamedNode("http://example.com/p"),
-		NewNamedNode("http://example.com/o"),
+	quad, _ := rdfgo.NewQuad(
+		rdfgo.NewNamedNode("http://example.com/s"),
+		rdfgo.NewNamedNode("http://example.com/p"),
+		rdfgo.NewNamedNode("http://example.com/o"),
 		nil,
 	)
 
-	stream := NewStream() // This will create a new Stream
+	stream := rdfgo.NewStream() // This will create a new Stream
 	stream <- quad        // This will add a quad to the stream
 	close(stream)         // This will close the stream
 	stream.ToIStream()    // This will convert the stream to an IStream interface
 
-	stream.Import(NewStream().ToIStream())           // This will import a stream to another stream
-	stream = ArrayToStream([]interfaces.IQuad{quad}) // This will import an array of quads to a stream
+	stream.Import(rdfgo.NewStream().ToIStream())           // This will import a stream to another stream
+	stream = rdfgo.ArrayToStream([]rdfgo.IQuad{quad}) // This will import an array of quads to a stream
 
 	stream.Count()   // This will return the amount of quads in the stream
 	stream.ToStore() // This will return a store with the quads from the stream
@@ -122,33 +163,31 @@ Note that the store is implemented with set semantics, meaning that it will not 
 package main
 
 import (
-	"github.com/maartyman/rdfgo/interfaces"
-	. "github.com/maartyman/rdfgo/lib/data_model"
-	. "github.com/maartyman/rdfgo/lib/stream"
+	"github.com/maartyman/rdfgo"
 )
 
 func main() {
-	store := NewStore() // This will create a new store
+	store := rdfgo.NewStore() // This will create a new store
 
-	s := NewNamedNode("http://example.com/s")
-	p := NewNamedNode("http://example.com/p")
-	o := NewNamedNode("http://example.com/o")
-	addStream := NewStream()
-	quad, _ := NewQuad(
+	s := rdfgo.NewNamedNode("http://example.com/s")
+	p := rdfgo.NewNamedNode("http://example.com/p")
+	o := rdfgo.NewNamedNode("http://example.com/o")
+	addStream := rdfgo.NewStream()
+	quad, _ := rdfgo.NewQuad(
 		s,
 		p,
 		o,
 		nil,
 	)
-	removeStream := ArrayToStream([]interfaces.IQuad{
+	removeStream := rdfgo.ArrayToStream([]rdfgo.IQuad{
 		quad,
 	})
 	go func() {
 		for i := 0; i < 10; i++ {
-			quad, _ := NewQuad(
-				NewNamedNode("http://example.com/s"+string(rune(i))),
-				NewNamedNode("http://example.com/p"+string(rune(i))),
-				NewNamedNode("http://example.com/o"+string(rune(i))),
+			quad, _ := rdfgo.NewQuad(
+				rdfgo.NewNamedNode("http://example.com/s"+string(rune(i))),
+				rdfgo.NewNamedNode("http://example.com/p"+string(rune(i))),
+				rdfgo.NewNamedNode("http://example.com/o"+string(rune(i))),
 				nil,
 			)
 			addStream <- quad
@@ -175,14 +214,19 @@ func main() {
 ## Future work
 ### package
 - [ ] Improve tests
-- [ ] Add CI/CD to the package
+- [ ] Improve make RDF 1.2 compliant
 
 ### interfaces
 - [ ] Add support for the Query rdfjs spec
 
 ### lib
 - [ ] Add dataset support to the store
-- [ ] Add a parser to the lib portion of the package
+- [ ] Add json-ld parser
+- [ ] Add n3 parser
+- [ ] Add trig parser
+- [ ] Add nquads writer
+- [ ] Add turtle writer
+- [ ] The parser should make use of the DataFactory, this way users could supply their own.
 
 ## Development
 RDFgo has a makefile that can be used to run tests and build the package.
@@ -194,7 +238,7 @@ This will enable the git hooks and make sure the commit message follow the Conve
 ```
 type(scope): description
 ```
-Valid types: feat, fix, chore, docs, style, refactor, test, perf, ci <br>
+Valid types: feat, fix, chore<br>
 Example: `feat(parser): add ability to parse arrays` <br>
 It will also run the tests and linter before committing.
 

@@ -5,34 +5,39 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type Variable struct {
+type variable struct {
 	value string
 }
 
+// NewVariable is a constructor for creating a variable. This returns an implementation of the interfaces.IVariable interface.
 func NewVariable(value string) interfaces.IVariable {
 	if value[0] == '?' {
 		value = value[1:]
 	}
-	return &Variable{
+	return &variable{
 		value: value,
 	}
 }
 
-func (v *Variable) Equals(other interfaces.ITerm) bool {
+// Equals checks if the current variable is equal to another term.
+func (v *variable) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	return interfaces.VariableType == other.GetType() && v.value == other.GetValue()
 }
 
-func (v *Variable) GetType() interfaces.TermType {
+// GetType is a method that returns the (integer) type of the variable.
+func (v *variable) GetType() interfaces.TermType {
 	return interfaces.VariableType
 }
 
-func (v *Variable) GetValue() string {
+// GetValue returns the value of the variable (v1).
+func (v *variable) GetValue() string {
 	return v.value
 }
 
-func (v *Variable) ToString() string {
+// ToString returns the string representation of the variable (?v1).
+func (v *variable) ToString() string {
 	return fmt.Sprintf("?%s", v.value)
 }

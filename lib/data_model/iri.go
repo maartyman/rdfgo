@@ -6,11 +6,10 @@ import (
 
 const (
 	xsd = "http://www.w3.org/2001/XMLSchema#"
-	//rdf  = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	//swap = "http://www.w3.org/2000/10/swap/"
+	rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 )
 
-type XSDTerms struct {
+type xsdTerms struct {
 	Decimal interfaces.INamedNode
 	Boolean interfaces.INamedNode
 	Double  interfaces.INamedNode
@@ -18,8 +17,7 @@ type XSDTerms struct {
 	String  interfaces.INamedNode
 }
 
-/*
-type RDFTerms struct {
+type rdfTerms struct {
 	Type       interfaces.INamedNode
 	Nil        interfaces.INamedNode
 	First      interfaces.INamedNode
@@ -27,55 +25,25 @@ type RDFTerms struct {
 	LangString interfaces.INamedNode
 }
 
-type OWLTerms struct {
-	SameAs interfaces.INamedNode
+type terms struct {
+	XSD xsdTerms
+	RDF rdfTerms
 }
 
-type RTerms struct {
-	ForSome interfaces.INamedNode
-	ForAll  interfaces.INamedNode
-}
-
-type LogTerms struct {
-	Implies interfaces.INamedNode
-}
-*/
-
-type Terms struct {
-	XSD XSDTerms
-	/*
-		RDF RDFTerms
-		OWL OWLTerms
-		R   RTerms
-		Log LogTerms
-	*/
-}
-
-var IRI = Terms{
-	XSD: XSDTerms{
+// IRI gives access to common the IRI namespaces, like XSD, and RDF.
+var IRI = terms{
+	XSD: xsdTerms{
 		Decimal: NewNamedNode(xsd + "decimal"),
 		Boolean: NewNamedNode(xsd + "boolean"),
 		Double:  NewNamedNode(xsd + "double"),
 		Integer: NewNamedNode(xsd + "integer"),
 		String:  NewNamedNode(xsd + "string"),
 	},
-	/*
-		RDF: RDFTerms{
-			Type:       NewNamedNode(rdf + "type"),
-			Nil:        NewNamedNode(rdf + "nil"),
-			First:      NewNamedNode(rdf + "first"),
-			Rest:       NewNamedNode(rdf + "rest"),
-			LangString: NewNamedNode(rdf + "langString"),
-		},
-		OWL: OWLTerms{
-			SameAs: NewNamedNode("http://www.w3.org/2002/07/owl#sameAs"),
-		},
-		R: RTerms{
-			ForSome: NewNamedNode(swap + "reify#forSome"),
-			ForAll:  swap + "reify#forAll"),
-		},
-		Log: LogTerms{
-			Implies: NewNamedNode(swap + "log#implies"),
-		},
-	*/
+	RDF: rdfTerms{
+		Type:       NewNamedNode(rdf + "type"),
+		Nil:        NewNamedNode(rdf + "nil"),
+		First:      NewNamedNode(rdf + "first"),
+		Rest:       NewNamedNode(rdf + "rest"),
+		LangString: NewNamedNode(rdf + "langString"),
+	},
 }

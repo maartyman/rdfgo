@@ -8,10 +8,10 @@ import (
 func TestDefaultGraph(t *testing.T) {
 	dg := NewDefaultGraph()
 	if dg.GetType() != interfaces.DefaultGraphType {
-		t.Errorf("DefaultGraph type should be %s", interfaces.DefaultGraphType)
+		t.Errorf("defaultGraph type should be %s", interfaces.DefaultGraphType)
 	}
 	if dg.GetValue() != DefaultGraphValue {
-		t.Errorf("DefaultGraph name should be %s", DefaultGraphValue)
+		t.Errorf("defaultGraph name should be %s", DefaultGraphValue)
 	}
 }
 
@@ -22,32 +22,32 @@ func TestDefaultGraph_Equals(t *testing.T) {
 	dg4 := NewNamedNode("")
 	dg5 := NewNamedNode("graph")
 	if !dg1.Equals(dg1) {
-		t.Errorf("DefaultGraph should equal itself")
+		t.Errorf("defaultGraph should equal itself")
 	}
 	if !dg1.Equals(dg2) {
-		t.Errorf("DefaultGraph should equal another DefaultGraph")
+		t.Errorf("defaultGraph should equal another defaultGraph")
 	}
 	if dg1.Equals(dg3) {
-		t.Errorf("DefaultGraph should not equal a NamedNode")
+		t.Errorf("defaultGraph should not equal a namedNode")
 	}
 	if dg1.Equals(dg4) {
-		t.Errorf("DefaultGraph should not equal a empty NamedNode")
+		t.Errorf("defaultGraph should not equal a empty namedNode")
 	}
 	if dg1.Equals(dg5) {
-		t.Errorf("DefaultGraph should not equal a NamedNode with value 'graph'")
+		t.Errorf("defaultGraph should not equal a namedNode with value 'graph'")
 	}
 }
 
 func TestDefaultGraph_EqualsNil(t *testing.T) {
 	dg1 := NewDefaultGraph()
 	if dg1.Equals(nil) {
-		t.Errorf("DefaultGraph should not equal nil")
+		t.Errorf("defaultGraph should not equal nil")
 	}
 }
 
 func TestDefaultGraph_ToString(t *testing.T) {
 	dg1 := NewDefaultGraph()
 	if dg1.ToString() != DefaultGraphString {
-		t.Errorf("DefaultGraph to string should equal an empty string")
+		t.Errorf("defaultGraph to string should equal an empty string")
 	}
 }

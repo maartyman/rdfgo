@@ -6,13 +6,14 @@ import (
 	"sync"
 )
 
-type Store struct {
+type store struct {
 	size    int
 	entries map[string][]interfaces.IQuad
 	mux     sync.RWMutex
 }
 
-type IStore interface {
+// Store is an extension of the interfaces.IStore interface. It has various methods to manipulate the store, like adding and removing quads, checking if a quad exists, and iterating over the quads.
+type Store interface {
 	interfaces.IStore
 	Size() int
 	Has(interfaces.IQuad) bool
@@ -22,14 +23,16 @@ type IStore interface {
 	ForEach(func(interfaces.IQuad))
 }
 
-func NewStore() IStore {
-	return &Store{
+// NewStore creates a new store of quads. A store indexes the quads by their subject, predicate, object, and graph. Note that this store is set semantics, meaning that it does not allow duplicate quads.
+func NewStore() Store {
+	return &store{
 		size:    0,
 		entries: make(map[string][]interfaces.IQuad),
 	}
 }
 
-func (s *Store) Size() int {
+// Size returns the number of quads in the store.
+func (s *store) Size() int {
 	return s.size
 }
 
@@ -79,14 +82,16 @@ func convertVariablesToNil(
 	return subject, predicate, object, graph
 }
 
-func (s *Store) Has(quad interfaces.IQuad) bool {
+// Has checks if the store contains a quad. It returns true if the quad exists, false otherwise.
+func (s *store) Has(quad interfaces.IQuad) bool {
 	s.mux.Lock()
 	_, exists := s.entries[quad.GetSubject().ToString()+","+quad.GetPredicate().ToString()+","+quad.GetObject().ToString()+","+quad.GetGraph().ToString()]
 	s.mux.Unlock()
 	return exists
 }
 
-func (s *Store) AddQuadFromTerms(
+// AddQuadFromTerms adds a quad to the store. It takes four terms: subject, predicate, object, and graph. If any of the terms are nil, it returns false. If the quad already exists in the store, it returns false.
+func (s *store) AddQuadFromTerms(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -127,11 +132,13 @@ func (s *Store) AddQuadFromTerms(
 	return true
 }
 
-func (s *Store) AddQuad(quad interfaces.IQuad) bool {
+// AddQuad adds a quad to the store. It takes a quad as an argument. If the quad already exists in the store, it returns false.
+func (s *store) AddQuad(quad interfaces.IQuad) bool {
 	return s.AddQuadFromTerms(quad.GetSubject(), quad.GetPredicate(), quad.GetObject(), quad.GetGraph())
 }
 
-func (s *Store) RemoveQuad(quad interfaces.IQuad) {
+// RemoveQuad removes a quad from the store. It takes a quad as an argument. If the quad does not exist in the store, it does nothing.
+func (s *store) RemoveQuad(quad interfaces.IQuad) {
 	if !s.Has(quad) {
 		return
 	}
@@ -161,7 +168,8 @@ func (s *Store) RemoveQuad(quad interfaces.IQuad) {
 	s.mux.Unlock()
 }
 
-func (s *Store) RemoveMatches(
+// RemoveMatches removes all quads that match the given subject, predicate, object, and graph. It takes four terms as arguments.
+func (s *store) RemoveMatches(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -172,7 +180,8 @@ func (s *Store) RemoveMatches(
 	}
 }
 
-func (s *Store) Remove(stream interfaces.IStream) {
+// Remove removes all quads from the store that are in the given stream. It takes a stream as an argument.
+func (s *store) Remove(stream interfaces.IStream) {
 	for quad := range stream {
 		if quad != nil {
 			s.RemoveQuad(quad)
@@ -180,30 +189,32 @@ func (s *Store) Remove(stream interfaces.IStream) {
 	}
 }
 
-func (s *Store) DeleteGraph(graph interfaces.ITerm) {
+// DeleteGraph removes all quads from the store that are in the given graph. It takes a graph as an argument.
+func (s *store) DeleteGraph(graph interfaces.ITerm) {
 	s.RemoveMatches(nil, nil, nil, graph)
 }
 
-func (s *Store) matchSubject(subject interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchSubject(subject interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[subject.ToString()+",,,"]
 }
 
-func (s *Store) matchPredicate(predicate interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchPredicate(predicate interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[","+predicate.ToString()+",,"]
 }
 
-func (s *Store) matchObject(object interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchObject(object interfaces.ITerm) []interfaces.IQuad {
 	return s.entries[",,"+object.ToString()+","]
 }
 
-func (s *Store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
+func (s *store) matchGraph(graph interfaces.ITerm) []interfaces.IQuad {
 	if graph.GetType() == interfaces.DefaultGraphType {
 		return s.entries[",,,"+DefaultGraphValue]
 	}
 	return s.entries[",,,"+graph.ToString()]
 }
 
-func (s *Store) Match(
+// Match returns a stream of quads that match the given subject, predicate, object, and graph. It takes four terms as arguments. If all terms are nil, it returns all quads in the store.
+func (s *store) Match(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,
@@ -321,7 +332,8 @@ func (s *Store) Match(
 	return quadStream
 }
 
-func (s *Store) Import(quadStream interfaces.IStream) {
+// Import imports a stream of quads into the store. It takes a stream as an argument.
+func (s *store) Import(quadStream interfaces.IStream) {
 	for quad := range quadStream {
 		if quad != nil {
 			s.AddQuad(quad)
@@ -329,7 +341,8 @@ func (s *Store) Import(quadStream interfaces.IStream) {
 	}
 }
 
-func (s *Store) ForEach(callback func(interfaces.IQuad)) {
+// ForEach iterates over all quads in the store and applies the given callback function to each quad. It takes a callback function as an argument.
+func (s *store) ForEach(callback func(interfaces.IQuad)) {
 	for key, value := range s.entries {
 		if key[0] != ',' && key[len(key)-1] != ',' {
 			for _, quad := range value {

@@ -9,24 +9,24 @@ func TestNamedNode_NewNamedNode(t *testing.T) {
 	l1 := NewNamedNode("<l1>")
 	l2 := NewNamedNode("l1")
 	if l1.GetValue() != "l1" {
-		t.Errorf("NamedNode value should be l1")
+		t.Errorf("namedNode value should be l1")
 	}
 	if !l1.Equals(l2) {
-		t.Errorf("NamedNode with and without `<` and `>` should be equal")
+		t.Errorf("namedNode with and without `<` and `>` should be equal")
 	}
 }
 
 func TestNamedNode_GetType(t *testing.T) {
 	l1 := NewNamedNode("l1")
 	if l1.GetType() != interfaces.NamedNodeType {
-		t.Errorf("NamedNode type should be %s", interfaces.NamedNodeType)
+		t.Errorf("namedNode type should be %s", interfaces.NamedNodeType)
 	}
 }
 
 func TestNamedNode_GetValue(t *testing.T) {
 	l1 := NewNamedNode("l1")
 	if l1.GetValue() != "l1" {
-		t.Errorf("NamedNode value should be l1")
+		t.Errorf("namedNode value should be l1")
 	}
 }
 

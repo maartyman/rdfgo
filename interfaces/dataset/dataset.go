@@ -5,6 +5,7 @@ import (
 	. "github.com/maartyman/rdfgo/interfaces/stream"
 )
 
+// IDataset is an interface for datasets (https://rdf.js.org/dataset-spec/#dataset-interface).
 type IDataset interface {
 	IDatasetCore
 	AddAll(IDataset) IDatasetCore

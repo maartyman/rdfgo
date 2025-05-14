@@ -1,8 +1,9 @@
-file ?= ./..
-test-file ?= ./...
+f ?= ./...
+n ?= .
+cpu ?= -1
 
 # Define a list of files to ignore
-IGNORE_FILES = cmd/
+IGNORE_FILES = cmd/ yaccpar nquads.y
 
 VERSION := $(shell git describe --tags --abbrev=0) # Get the latest tag (e.g., v1.0.0)
 MAJOR := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$2}')
@@ -11,7 +12,16 @@ PATCH := $(shell echo $(VERSION) | awk -F'[v.]' '{print $$4}')
 
 test:
 	# Run tests
-	@go test $(test-file) -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -26,7 +36,16 @@ test:
 
 test-verbose:
 	# Run tests verbose
-	@go test $(test-file) -v -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -v -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -v -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -39,17 +58,24 @@ test-verbose:
 		echo "Total test coverage is: $$coverage%"; \
 	fi
 
-test-cover: test
-	# Generate coverage report
-	@go tool cover -html=covprofile
-
-test-cover-save: test
+test-cover:
+	# Run tests even if not 100% coverage
+	-@$(MAKE) --no-print-directory test || true
 	# Generate coverage report
 	@go tool cover -html=covprofile -o coverage.html
 
 test-race:
 	# Run tests with race detector
-	@go test $(test-file) -race -covermode atomic -coverprofile=covprofile
+	@if echo "$(f)" | grep -qE '\.go$$'; then \
+		echo "Searching for test file: $(f)"; \
+		pkgs=$$(find . -name "$(f)" | xargs -n1 dirname | sort -u); \
+		for pkg in $$pkgs; do \
+			go test $$pkg -race -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+		done; \
+	else \
+		go test $(f) -race -covermode=atomic -coverprofile=covprofile.tmp || exit 1; \
+	fi; \
+	mv covprofile.tmp covprofile
 	@for pattern in $(IGNORE_FILES); do \
 		grep -v -E $$pattern covprofile > tmp_filtered.out; \
 		mv tmp_filtered.out covprofile; \
@@ -62,19 +88,112 @@ test-race:
 		echo "Total test coverage is: $$coverage%"; \
 	fi
 
+
+benchmark:
+	# Benchmark
+	@if [ "$(f)" = "./..." ]; then \
+		f=./performance; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark in $$f"; \
+	fi; \
+	if [ "$(n)" = "." ]; then \
+		n=.; \
+	else \
+		n=$(n)$$; \
+		echo "Running benchmark $$n"; \
+	fi; \
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n; \
+	else \
+		go test $$f -bench=$$n -cpu=$(cpu); \
+	fi
+
+benchmark-mem:
+	# Benchmark
+	@if [ "$(f)" = "./..." ]; then \
+		f=./performance; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark in $$f"; \
+	fi; \
+	if [ "$(n)" = "." ]; then \
+		n=.; \
+	else \
+		n=$(n)$$; \
+		echo "Running benchmark $$n"; \
+	fi; \
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -benchmem; \
+	else \
+		go test $$f -bench=$$n -benchmem -cpu=$(cpu); \
+	fi
+
+flamegraph-cpu:
+	# Generate flame graph
+	@if [ "$(f)" = "./..." ]; then \
+		f=./performance; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark in $$f"; \
+	fi; \
+	if [ "$(n)" = "." ]; then \
+		n=.; \
+	else \
+		n=$(n)$$; \
+		echo "Running benchmark $$n"; \
+	fi; \
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -cpuprofile cpu.prof; \
+	else \
+		go test $$f -bench=$$n -cpu=$(cpu) -cpuprofile cpu.prof; \
+	fi
+	@go tool pprof -http=:8080 cpu.prof
+
+flamegraph-mem:
+	# Generate flame graph
+	@if [ "$(f)" = "./..." ]; then \
+		f=./performance; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark in $$f"; \
+	fi; \
+	if [ "$(n)" = "." ]; then \
+		n=.; \
+	else \
+		n=$(n)$$; \
+		echo "Running benchmark $$n"; \
+	fi; \
+	if [ "$(cpu)" = "-1" ]; then \
+		go test $$f -bench=$$n -benchmem -memprofile mem.prof; \
+	else \
+		go test $$f -bench=$$n -benchmem -cpu=$(cpu) -memprofile mem.prof;  \
+	fi
+	@go tool pprof -http=:8080 mem.prof
+
 shorten:
 	# Shorten lines
-	@golines $(file) -w -m 120
+	@if [ "$(f)" = "./..." ]; then \
+		f=./..; \
+	else \
+		f=*/$(f); \
+		echo "Running benchmark on $$f"; \
+	fi; \
+	golines $$f -w -m 120
 
 lint:
 	# Run linter
 	@golangci-lint run
 
+lint-fix:
+	# Run linter
+	@golangci-lint run --fix
+
 fmt:
 	# Format code
 	@gofmt -s -w .
 
-pre-commit: fmt lint test-race
+pre-commit: build-parser fmt lint test-race
 
 setup-for-release:
 	@git checkout master
@@ -153,4 +272,10 @@ setup-project:
 	# Setup git hooks
 	@git config core.hooksPath .githooks
 	# Install Dependencies
-	@go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+	@go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.4
+	@go install golang.org/x/tools/cmd/goyacc@v0.33.0
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+
+build-parser:
+	@cd ./lib/parser/nquads && goyacc -o ./yacc.go ./nquads.y
+	@cd ./lib/parser/turtle && goyacc -o ./yacc.go ./turtle.y

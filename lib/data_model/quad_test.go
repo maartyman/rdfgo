@@ -21,16 +21,16 @@ func utilTermIsWrong(
 		}
 	}
 	if q != nil {
-		t.Errorf("Quad should be nil if error: " + testErrorMessage)
+		t.Errorf("quad should be nil if error: " + testErrorMessage)
 	}
 }
 
 func utilTermIsCorrect(t *testing.T, err error, q interfaces.IQuad, testErrorMessage string) {
 	if err != nil {
-		t.Errorf(testErrorMessage)
+		t.Error(testErrorMessage)
 	}
 	if q == nil {
-		t.Errorf("Quad should not be nil if no error")
+		t.Errorf("quad should not be nil if no error")
 	}
 }
 
@@ -43,13 +43,13 @@ func TestNewQuad_SubjectLimitations(t *testing.T) {
 	l6, err6 := NewQuad(l5, NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	l7, err7 := NewQuad(NewVariable("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 
-	utilTermIsWrong(t, err1, l1, SubjectTermTypeError, "Quad subject cannot be nil")
-	utilTermIsCorrect(t, err2, l2, "Quad subject can be a BlankNode")
-	utilTermIsWrong(t, err3, l3, SubjectTermTypeError, "Quad subject cannot be a DefaultGraph")
-	utilTermIsWrong(t, err4, l4, SubjectTermTypeError, "Quad subject cannot be a Literal")
-	utilTermIsCorrect(t, err5, l5, "Quad subject can be a NamedNode")
-	utilTermIsCorrect(t, err6, l6, "Quad subject can be a Quad")
-	utilTermIsCorrect(t, err7, l7, "Quad subject can be a Variable")
+	utilTermIsWrong(t, err1, l1, SubjectTermTypeError, "quad subject cannot be nil")
+	utilTermIsCorrect(t, err2, l2, "quad subject can be a blankNode")
+	utilTermIsWrong(t, err3, l3, SubjectTermTypeError, "quad subject cannot be a defaultGraph")
+	utilTermIsWrong(t, err4, l4, SubjectTermTypeError, "quad subject cannot be a literal")
+	utilTermIsCorrect(t, err5, l5, "quad subject can be a namedNode")
+	utilTermIsCorrect(t, err6, l6, "quad subject can be a quad")
+	utilTermIsCorrect(t, err7, l7, "quad subject can be a variable")
 }
 
 func TestNewQuad_PredicateLimitations(t *testing.T) {
@@ -61,13 +61,13 @@ func TestNewQuad_PredicateLimitations(t *testing.T) {
 	l6, err6 := NewQuad(NewNamedNode("s"), l5, NewNamedNode("o"), NewNamedNode("g"))
 	l7, err7 := NewQuad(NewNamedNode("s"), NewVariable("p"), NewNamedNode("o"), NewNamedNode("g"))
 
-	utilTermIsWrong(t, err1, l1, PredicateTermTypeError, "Quad predicate cannot be nil")
-	utilTermIsWrong(t, err2, l2, PredicateTermTypeError, "Quad predicate cannot be a BlankNode")
-	utilTermIsWrong(t, err3, l3, PredicateTermTypeError, "Quad predicate cannot be a DefaultGraph")
-	utilTermIsWrong(t, err4, l4, PredicateTermTypeError, "Quad predicate cannot be a Literal")
-	utilTermIsCorrect(t, err5, l5, "Quad predicate can be a NamedNode")
-	utilTermIsWrong(t, err6, l6, PredicateTermTypeError, "Quad predicate cannot be a Quad")
-	utilTermIsCorrect(t, err7, l7, "Quad predicate can be a Variable")
+	utilTermIsWrong(t, err1, l1, PredicateTermTypeError, "quad predicate cannot be nil")
+	utilTermIsWrong(t, err2, l2, PredicateTermTypeError, "quad predicate cannot be a blankNode")
+	utilTermIsWrong(t, err3, l3, PredicateTermTypeError, "quad predicate cannot be a defaultGraph")
+	utilTermIsWrong(t, err4, l4, PredicateTermTypeError, "quad predicate cannot be a literal")
+	utilTermIsCorrect(t, err5, l5, "quad predicate can be a namedNode")
+	utilTermIsWrong(t, err6, l6, PredicateTermTypeError, "quad predicate cannot be a quad")
+	utilTermIsCorrect(t, err7, l7, "quad predicate can be a variable")
 }
 
 func TestNewQuad_ObjectLimitations(t *testing.T) {
@@ -79,13 +79,13 @@ func TestNewQuad_ObjectLimitations(t *testing.T) {
 	l6, err6 := NewQuad(NewNamedNode("s"), NewNamedNode("p"), l5, NewNamedNode("g"))
 	l7, err7 := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewVariable("o"), NewNamedNode("g"))
 
-	utilTermIsWrong(t, err1, l1, ObjectTermTypeError, "Quad object cannot be nil")
-	utilTermIsCorrect(t, err2, l2, "Quad object can be a BlankNode")
-	utilTermIsWrong(t, err3, l3, ObjectTermTypeError, "Quad object cannot be a DefaultGraph")
-	utilTermIsCorrect(t, err4, l4, "Quad object can be a Literal")
-	utilTermIsCorrect(t, err5, l5, "Quad object can be a NamedNode")
-	utilTermIsCorrect(t, err6, l6, "Quad object can be a Quad")
-	utilTermIsCorrect(t, err7, l7, "Quad object can be a Variable")
+	utilTermIsWrong(t, err1, l1, ObjectTermTypeError, "quad object cannot be nil")
+	utilTermIsCorrect(t, err2, l2, "quad object can be a blankNode")
+	utilTermIsWrong(t, err3, l3, ObjectTermTypeError, "quad object cannot be a defaultGraph")
+	utilTermIsCorrect(t, err4, l4, "quad object can be a literal")
+	utilTermIsCorrect(t, err5, l5, "quad object can be a namedNode")
+	utilTermIsCorrect(t, err6, l6, "quad object can be a quad")
+	utilTermIsCorrect(t, err7, l7, "quad object can be a variable")
 }
 
 func TestNewQuad_GraphLimitations(t *testing.T) {
@@ -97,43 +97,43 @@ func TestNewQuad_GraphLimitations(t *testing.T) {
 	l6, err6 := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), l5)
 	l7, err7 := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewVariable("g"))
 
-	utilTermIsCorrect(t, err1, l1, "Quad graph can be nil")
+	utilTermIsCorrect(t, err1, l1, "quad graph can be nil")
 	if !l1.GetGraph().Equals(NewDefaultGraph()) {
-		t.Errorf("Quad graph should be a DefaultGraph if nil")
+		t.Errorf("quad graph should be a defaultGraph if nil")
 	}
-	utilTermIsCorrect(t, err2, l2, "Quad graph can be a BlankNode")
-	utilTermIsCorrect(t, err3, l3, "Quad graph can be a DefaultGraph")
-	utilTermIsWrong(t, err4, l4, GraphTermTypeError, "Quad graph cannot be a Literal")
-	utilTermIsCorrect(t, err5, l5, "Quad graph can be a NamedNode")
-	utilTermIsWrong(t, err6, l6, GraphTermTypeError, "Quad graph cannot be a Quad")
-	utilTermIsCorrect(t, err7, l7, "Quad graph can be a Variable")
+	utilTermIsCorrect(t, err2, l2, "quad graph can be a blankNode")
+	utilTermIsCorrect(t, err3, l3, "quad graph can be a defaultGraph")
+	utilTermIsWrong(t, err4, l4, GraphTermTypeError, "quad graph cannot be a literal")
+	utilTermIsCorrect(t, err5, l5, "quad graph can be a namedNode")
+	utilTermIsWrong(t, err6, l6, GraphTermTypeError, "quad graph cannot be a quad")
+	utilTermIsCorrect(t, err7, l7, "quad graph can be a variable")
 }
 
 func TestQuad_GetSubject(t *testing.T) {
 	l1, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	if !l1.GetSubject().Equals(NewNamedNode("s")) {
-		t.Errorf("Quad subject should equal s")
+		t.Errorf("quad subject should equal s")
 	}
 }
 
 func TestQuad_GetPredicate(t *testing.T) {
 	l1, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	if !l1.GetPredicate().Equals(NewNamedNode("p")) {
-		t.Errorf("Quad predicate should equal p")
+		t.Errorf("quad predicate should equal p")
 	}
 }
 
 func TestQuad_GetObject(t *testing.T) {
 	l1, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	if !l1.GetObject().Equals(NewNamedNode("o")) {
-		t.Errorf("Quad object should equal o")
+		t.Errorf("quad object should equal o")
 	}
 }
 
 func TestQuad_GetGraph(t *testing.T) {
 	l1, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	if !l1.GetGraph().Equals(NewNamedNode("g")) {
-		t.Errorf("Quad graph should equal g")
+		t.Errorf("quad graph should equal g")
 	}
 }
 
@@ -168,26 +168,26 @@ func TestQuad_Equals(t *testing.T) {
 		t.Errorf("A quad should not equal a quad with different values for all fields")
 	}
 	if l1.Equals(l8) {
-		t.Errorf("A quad should not equal a NamedNode")
+		t.Errorf("A quad should not equal a namedNode")
 	}
 }
 
 func TestQuad_EqualsNil(t *testing.T) {
 	l1, _ := NewQuad(NewNamedNode("s"), NewNamedNode("p"), NewNamedNode("o"), NewNamedNode("g"))
 	if l1.Equals(nil) {
-		t.Errorf("Quad should not equal nil")
+		t.Errorf("quad should not equal nil")
 	}
 }
 
 func TestQuad_ToString(t *testing.T) {
 	tests := []struct {
 		name     string
-		quad     Quad
+		quad     quad
 		expected string
 	}{
 		{
 			name: "All components present",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode("<http://example.com/subject>"),
 				predicate: NewNamedNode("<http://example.com/predicate>"),
 				object:    NewNamedNode("<http://example.com/object>"),
@@ -197,7 +197,7 @@ func TestQuad_ToString(t *testing.T) {
 		},
 		{
 			name: "Empty subject",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode(""),
 				predicate: NewNamedNode("<http://example.com/predicate>"),
 				object:    NewNamedNode("<http://example.com/object>"),
@@ -207,7 +207,7 @@ func TestQuad_ToString(t *testing.T) {
 		},
 		{
 			name: "Empty predicate",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode("<http://example.com/subject>"),
 				predicate: NewNamedNode(""),
 				object:    NewNamedNode("<http://example.com/object>"),
@@ -217,7 +217,7 @@ func TestQuad_ToString(t *testing.T) {
 		},
 		{
 			name: "Empty object",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode("<http://example.com/subject>"),
 				predicate: NewNamedNode("<http://example.com/predicate>"),
 				object:    NewNamedNode(""),
@@ -227,7 +227,7 @@ func TestQuad_ToString(t *testing.T) {
 		},
 		{
 			name: "Empty graph",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode("<http://example.com/subject>"),
 				predicate: NewNamedNode("<http://example.com/predicate>"),
 				object:    NewNamedNode("<http://example.com/object>"),
@@ -237,7 +237,7 @@ func TestQuad_ToString(t *testing.T) {
 		},
 		{
 			name: "All components empty",
-			quad: Quad{
+			quad: quad{
 				subject:   NewNamedNode(""),
 				predicate: NewNamedNode(""),
 				object:    NewNamedNode(""),

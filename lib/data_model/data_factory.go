@@ -1,45 +1,64 @@
 package rdfgo
 
 import (
+	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
-type DataFactory struct {
+type dataFactory struct {
 	blankNodeCounter int
 }
 
-func NewDataFactory() *DataFactory {
-	return &DataFactory{0}
+// DataFactory is an extension of the interfaces.IDataFactory interface. It includes a SimpleLiteral method that creates a literal with a default datatype of xsd:string.
+type DataFactory interface {
+	interfaces.IDataFactory
+	SimpleLiteral(value string) interfaces.ILiteral
 }
 
-func (df *DataFactory) NamedNode(value string) interfaces.INamedNode {
+// NewDataFactory is a constructor for creating a data factory. This returns an implementation of the DataFactory interface.
+func NewDataFactory() DataFactory {
+	return &dataFactory{0}
+}
+
+// NamedNode is a method that creates a named node. This returns an implementation of the interfaces.INamedNode interface.
+func (df *dataFactory) NamedNode(value string) interfaces.INamedNode {
 	return NewNamedNode(value)
 }
 
-func (df *DataFactory) BlankNode(value string) interfaces.IBlankNode {
+// BlankNode is a method that creates a blank node. This returns an implementation of the interfaces.IBlankNode interface. if the value is empty, it generates a new blank node with an incremented counter (b0, b1, b2, etc.).
+func (df *dataFactory) BlankNode(value string) interfaces.IBlankNode {
+	if value == "" {
+		value = fmt.Sprintf("b%d", df.blankNodeCounter)
+		df.blankNodeCounter++
+	}
 	return NewBlankNode(value)
 }
 
-func (df *DataFactory) SimpleLiteral(value string) interfaces.ILiteral {
-	return NewLiteral(value, "", df.NamedNode("http://www.w3.org/2001/XMLSchema#string"))
+// SimpleLiteral is a method that creates a literal with a default datatype of xsd:string. This returns an implementation of the interfaces.ILiteral interface.
+func (df *dataFactory) SimpleLiteral(value string) interfaces.ILiteral {
+	return NewLiteral(value, "", IRI.XSD.String)
 }
 
-func (df *DataFactory) Literal(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
+// Literal is a method that creates a literal. This returns an implementation of the interfaces.ILiteral interface. It accepts a value, language, and datatype.
+func (df *dataFactory) Literal(value string, language string, datatype interfaces.INamedNode) interfaces.ILiteral {
 	if datatype == nil {
-		datatype = df.NamedNode("http://www.w3.org/2001/XMLSchema#string")
+		datatype = IRI.XSD.String
 	}
 	return NewLiteral(value, language, datatype)
 }
 
-func (df *DataFactory) Variable(value string) interfaces.IVariable {
+// Variable is a method that creates a variable. This returns an implementation of the interfaces.IVariable interface.
+func (df *dataFactory) Variable(value string) interfaces.IVariable {
 	return NewVariable(value)
 }
 
-func (df *DataFactory) DefaultGraph() interfaces.IDefaultGraph {
+// DefaultGraph is a method that creates a default graph. This returns an implementation of the interfaces.IDefaultGraph interface.
+func (df *dataFactory) DefaultGraph() interfaces.IDefaultGraph {
 	return NewDefaultGraph()
 }
 
-func (df *DataFactory) Quad(
+// Quad is a method that creates a quad. This returns an implementation of the interfaces.IQuad interface.
+func (df *dataFactory) Quad(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
 	object interfaces.ITerm,

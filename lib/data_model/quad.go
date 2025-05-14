@@ -6,20 +6,29 @@ import (
 	"github.com/maartyman/rdfgo/interfaces"
 )
 
+// QuadValue is a constant that represents the quad value. This is never used as the value of a quad is the combination of the subject, predicate, object, and graph.
 const QuadValue = ""
 
-var SubjectTermTypeError = errors.New("subject needs to be a NamedNode, BlankNode, Quad or Variable")
-var PredicateTermTypeError = errors.New("predicate needs to be a NamedNode or Variable")
-var ObjectTermTypeError = errors.New("object needs to be a NamedNode, BlankNode, Literal, or Variable")
-var GraphTermTypeError = errors.New("graph needs to be a NamedNode, BlankNode, DefaultGraph, or Variable")
+// SubjectTermTypeError is an error type that is thrown when a quad's subject is not of the correct type.
+var SubjectTermTypeError = errors.New("subject needs to be a namedNode, blankNode, quad or variable")
 
-type Quad struct {
+// PredicateTermTypeError is an error type that is thrown when a quad's predicate is not of the correct type.
+var PredicateTermTypeError = errors.New("predicate needs to be a namedNode or variable")
+
+// ObjectTermTypeError is an error type that is thrown when a quad's object is not of the correct type.
+var ObjectTermTypeError = errors.New("object needs to be a namedNode, blankNode, literal, or variable")
+
+// GraphTermTypeError is an error type that is thrown when a quad's graph is not of the correct type.
+var GraphTermTypeError = errors.New("graph needs to be a namedNode, blankNode, defaultGraph, or variable")
+
+type quad struct {
 	subject   interfaces.ITerm
 	predicate interfaces.ITerm
 	object    interfaces.ITerm
 	graph     interfaces.ITerm
 }
 
+// NewQuad is a constructor for creating a quad. This returns an implementation of the interfaces.IQuad interface.
 func NewQuad(
 	subject interfaces.ITerm,
 	predicate interfaces.ITerm,
@@ -51,7 +60,7 @@ func NewQuad(
 		graph.GetType() != interfaces.VariableType {
 		return nil, GraphTermTypeError
 	}
-	return &Quad{
+	return &quad{
 		subject:   subject,
 		predicate: predicate,
 		object:    object,
@@ -59,14 +68,15 @@ func NewQuad(
 	}, nil
 }
 
-func (q *Quad) Equals(other interfaces.ITerm) bool {
+// Equals is a method that checks if two quads are equal. This returns true if the other term is also a quad and has the same subject, predicate, object, and graph.
+func (q *quad) Equals(other interfaces.ITerm) bool {
 	if other == nil {
 		return false
 	}
 	if q == other {
 		return true
 	}
-	quad, ok := other.(*Quad)
+	quad, ok := other.(*quad)
 	if !ok || interfaces.QuadType != other.GetType() {
 		return false
 	}
@@ -77,31 +87,38 @@ func (q *Quad) Equals(other interfaces.ITerm) bool {
 		q.graph.Equals(quad.GetGraph())
 }
 
-func (q *Quad) GetType() interfaces.TermType {
+// GetType is a method that returns the (integer) type of the quad.
+func (q *quad) GetType() interfaces.TermType {
 	return interfaces.QuadType
 }
 
-func (q *Quad) GetValue() string {
+// GetValue is a method that returns the value of the quad. This is never used as the value of a quad is the combination of the subject, predicate, object, and graph.
+func (q *quad) GetValue() string {
 	return QuadValue
 }
 
-func (q *Quad) GetSubject() interfaces.ITerm {
+// GetSubject is a method that returns the subject of the quad.
+func (q *quad) GetSubject() interfaces.ITerm {
 	return q.subject
 }
 
-func (q *Quad) GetPredicate() interfaces.ITerm {
+// GetPredicate is a method that returns the predicate of the quad.
+func (q *quad) GetPredicate() interfaces.ITerm {
 	return q.predicate
 }
 
-func (q *Quad) GetObject() interfaces.ITerm {
+// GetObject is a method that returns the object of the quad.
+func (q *quad) GetObject() interfaces.ITerm {
 	return q.object
 }
 
-func (q *Quad) GetGraph() interfaces.ITerm {
+// GetGraph is a method that returns the graph of the quad.
+func (q *quad) GetGraph() interfaces.ITerm {
 	return q.graph
 }
 
-func (q *Quad) ToString() string {
+// ToString is a method that returns the string representation of the quad (<s> <p> <o> <g>).
+func (q *quad) ToString() string {
 	return fmt.Sprintf(
 		"%s %s %s %s",
 		q.subject.ToString(),

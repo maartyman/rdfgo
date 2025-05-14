@@ -109,7 +109,7 @@ func TestNewArrayStreamWithNoElements(t *testing.T) {
 		t.Error("Stream should be closed")
 	}
 	if quad != nil {
-		t.Error("Quad should be nil")
+		t.Error("quad should be nil")
 	}
 }
 
@@ -130,7 +130,7 @@ func TestNewArrayStreamWithOneElement(t *testing.T) {
 	count := 0
 	for quad := range stream {
 		if quad == nil {
-			t.Error("Quad should not be nil")
+			t.Error("quad should not be nil")
 		} else {
 			count++
 		}
@@ -151,7 +151,7 @@ func TestNewArrayStreamWithOneNilElement(t *testing.T) {
 	count := 0
 	for quad := range stream {
 		if quad != nil {
-			t.Error("Quad should be nil")
+			t.Error("quad should be nil")
 			count++
 		}
 	}
