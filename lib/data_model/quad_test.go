@@ -236,6 +236,16 @@ func TestQuad_ToString(t *testing.T) {
 			expected: "<http://example.com/subject> <http://example.com/predicate> <http://example.com/object> <>",
 		},
 		{
+			name: "Default graph",
+			quad: quad{
+				subject:   NewNamedNode("<http://example.com/subject>"),
+				predicate: NewNamedNode("<http://example.com/predicate>"),
+				object:    NewNamedNode("<http://example.com/object>"),
+				graph:     NewDefaultGraph(),
+			},
+			expected: "<http://example.com/subject> <http://example.com/predicate> <http://example.com/object>",
+		},
+		{
 			name: "All components empty",
 			quad: quad{
 				subject:   NewNamedNode(""),

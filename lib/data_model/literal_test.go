@@ -168,9 +168,27 @@ func TestLiteralToString(t *testing.T) {
 			literal: literal{
 				value:    "example",
 				language: "en",
+				datatype: nil,
+			},
+			expected: "\"example\"@en",
+		},
+		{
+			name: "With language tag & datatype",
+			literal: literal{
+				value:    "example",
+				language: "en",
 				datatype: NewNamedNode("http://example.com/datatype"),
 			},
-			expected: "\"example\"@en^^<http://example.com/datatype>",
+			expected: "\"example\"@en",
+		},
+		{
+			name: "With string datatype",
+			literal: literal{
+				value:    "123",
+				language: "",
+				datatype: IRI.XSD.String,
+			},
+			expected: "\"123\"",
 		},
 		{
 			name: "With different datatype",
@@ -198,6 +216,69 @@ func TestLiteralToString(t *testing.T) {
 				datatype: nil,
 			},
 			expected: "\"\"@es",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.literal.ToString()
+			if actual != tt.expected {
+				t.Errorf("ToString() = %v, want %v", actual, tt.expected)
+			}
+		})
+	}
+}
+
+func TestLiteralToString_Escaping(t *testing.T) {
+	tests := []struct {
+		name     string
+		literal  literal
+		expected string
+	}{
+		{
+			name: "Escape double quotes",
+			literal: literal{
+				value:    `He said "hello"`,
+				language: "",
+				datatype: nil,
+			},
+			expected: `"He said \"hello\""`,
+		},
+		{
+			name: "Escape backslashes",
+			literal: literal{
+				value:    `Path\to\file`,
+				language: "",
+				datatype: nil,
+			},
+			expected: `"Path\\to\\file"`,
+		},
+		{
+			name: "Escape newlines",
+			literal: literal{
+				value:    "Line\nBreak",
+				language: "",
+				datatype: nil,
+			},
+			expected: `"Line\nBreak"`,
+		},
+		{
+			name: "Escape tabs",
+			literal: literal{
+				value:    "Tab\tCharacter",
+				language: "",
+				datatype: nil,
+			},
+			expected: `"Tab\tCharacter"`,
+		},
+		{
+			name: "Escape carriage returns",
+			literal: literal{
+				value:    "Carriage\rReturn",
+				language: "",
+				datatype: nil,
+			},
+			expected: `"Carriage\rReturn"`,
 		},
 	}
 

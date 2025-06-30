@@ -211,6 +211,47 @@ func main() {
 }
 ```
 
+### Writer
+The writer can be used to write quads to a file or an io.writer.
+```go
+package main
+
+import (
+	"os"
+	"github.com/maartyman/rdfgo"
+)
+
+func main() {
+	// Create a store and add quads
+	store := rdfgo.NewStore()
+	store.AddQuadFromTerms(
+		rdfgo.NewNamedNode("http://example.com/s"),
+		rdfgo.NewNamedNode("http://example.com/p"),
+		rdfgo.NewNamedNode("http://example.com/o"),
+		nil,
+	)
+
+	// Create a stream from the store
+	stream := store.Match(nil, nil, nil, nil)
+
+	// Open a file to write the quads
+	file, err := os.Create("output.nq")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Write the quads to the file in N-Quads format
+	options := rdfgo.WriterOptions{Format: "n-quads"}
+	_, err = rdfgo.Write(stream, file, options)
+	if err != nil {
+		panic(err)
+	}
+
+	println("Quads written to output.nq")
+}
+```
+
 ## Future work
 ### package
 - [ ] Improve tests

@@ -13,7 +13,7 @@ func BenchmarkStore(b *testing.B) {
 		b.Error(err.Error())
 	}
 	reader := strings.NewReader(string(data))
-	quads, errChan := rdfgo.Parse(reader, rdfgo.Options{
+	quads, errChan := rdfgo.Parse(reader, rdfgo.ParserOptions{
 		Format:  "text/turtle",
 		BaseIRI: "http://example.com/",
 	})
