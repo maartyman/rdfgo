@@ -1,6 +1,33 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+### Chore
+- development environment improvements
+- add turtle evaluation tests
+- Add documentation
+- add Store performanc check
+- refactoring, minor changes none breaking
+- add performance eval + update README, makefile, and commitmsg
+- fix linting issues
+- Update lock file
+- **release:** bump to v0.0.3
+- **turtleParser:** performance fixes
+
+### Feat
+- added the n-quad and n-triples writers
+- Add simple performance evel
+- Add turtle parser
+- Add nquad parser
+
+### Fix
+- data factory should keep blank node counter
+- remove stray println
+- literal can't have language and datatype set
+- Parser return type should be IStream
+- testing with coverage
+- **nquadParser:** Add data factory support and fix unescape
+- **turtleParser:** Add data facory + fix unescape + fix pefixed datatypes
+
 
 <a name="v0.0.3"></a>
 ## [v0.0.3] - 2024-09-23
