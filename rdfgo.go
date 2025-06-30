@@ -5,6 +5,7 @@ import (
 	datamodel "github.com/maartyman/rdfgo/lib/data_model"
 	parser "github.com/maartyman/rdfgo/lib/parser"
 	stream "github.com/maartyman/rdfgo/lib/stream"
+	writer "github.com/maartyman/rdfgo/lib/writer"
 )
 
 // Interfaces types:
@@ -159,8 +160,8 @@ var ParseFile = parser.ParseFile
 
 // Parser types
 
-// Options is used to configure the parser. It includes options for the base IRI, and the format type.
-type Options = parser.Options
+// ParserOptions is used to configure the parser. It includes options for the base IRI, and the format type.
+type ParserOptions = parser.ParserOptions
 
 // Stream functions:
 
@@ -180,3 +181,13 @@ type Store = stream.Store
 
 // Stream is an extension of the interfaces.IStream interface. It has various methods to manipulate the stream, like counting the quads, importing a stream, and converting to an array.
 type Stream = stream.Stream
+
+// Writer functions:
+
+// Write is a function that writes a stream of quads to an io.Writer. It accepts an io.Writer, a stream of quads, and a format type as parameters, and returns a channel of errors.
+var Write = writer.Write
+
+// Writer types:
+
+// WriterOptions is used to configure the writer. It includes options for the format type and prefixes.
+type WriterOptions = writer.WriterOptions

@@ -3,6 +3,7 @@ package rdfgo
 import (
 	"fmt"
 	"github.com/maartyman/rdfgo/interfaces"
+	"strings"
 )
 
 type literal struct {
@@ -85,16 +86,21 @@ func (l *literal) GetDatatype() interfaces.INamedNode {
 	return l.datatype
 }
 
-// ToString is a method that returns the string representation of the literal ("test"^^xsd:string | "test"@en).
+// ToString is a method that returns the string representation of the literal ("test" | "test"@en | "1"^^<xsd:integer>).
 func (l *literal) ToString() string {
-	languageString := ""
-	if l.language != "" {
-		languageString = fmt.Sprintf("@%s", l.language)
-	}
-	dataTypeString := ""
-	if l.datatype != nil {
-		dataTypeString = fmt.Sprintf("^^%s", l.datatype.ToString())
+	escapedValue := strings.NewReplacer(
+		`"`, `\"`,
+		`\`, `\\`,
+		"\n", `\n`,
+		"\t", `\t`,
+		"\r", `\r`,
+	).Replace(l.value)
 
+	if l.language != "" {
+		return fmt.Sprintf("\"%s\"@%s", escapedValue, l.language)
 	}
-	return fmt.Sprintf("\"%s\"%s%s", l.value, languageString, dataTypeString)
+	if l.datatype == nil || l.datatype.Equals(IRI.XSD.String) {
+		return fmt.Sprintf("\"%s\"", escapedValue)
+	}
+	return fmt.Sprintf("\"%s\"^^%s", escapedValue, l.datatype.ToString())
 }

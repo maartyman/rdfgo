@@ -117,8 +117,15 @@ func (q *quad) GetGraph() interfaces.ITerm {
 	return q.graph
 }
 
-// ToString is a method that returns the string representation of the quad (<s> <p> <o> <g>).
+// ToString is a method that returns the string representation of the quad (<s> <p> <o> | <s> <p> <o> <g>).
 func (q *quad) ToString() string {
+	if q.graph.GetType() == interfaces.DefaultGraphType {
+		return fmt.Sprintf(
+			"%s %s %s",
+			q.subject.ToString(),
+			q.predicate.ToString(),
+			q.object.ToString())
+	}
 	return fmt.Sprintf(
 		"%s %s %s %s",
 		q.subject.ToString(),

@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-// Options is used to configure the parser. It includes options for the base IRI, and the format type.
-type Options struct {
+// ParserOptions is used to configure the parser. It includes options for the base IRI, and the format type.
+type ParserOptions struct {
 	Format  string
 	BaseIRI string
 }
@@ -31,7 +31,7 @@ func getExtension(fileName string) string {
 }
 
 // ParseFile is a function that parses a file into a stream of quads. It accepts a file path and parser.Options as parameters, and returns a channel of quads and a channel of errors. It supports n-triples, n-quads, and turtle formats (.nt, .nq, .ttl).
-func ParseFile(fileName string, options Options) (interfaces.IStream, chan error) {
+func ParseFile(fileName string, options ParserOptions) (interfaces.IStream, chan error) {
 	quads := make(interfaces.IStream)
 	errChan := make(chan error, 1)
 
@@ -55,7 +55,7 @@ func ParseFile(fileName string, options Options) (interfaces.IStream, chan error
 }
 
 // Parse is a function that parses a string into a stream of quads. It accepts an io.Reader and parser.Options as parameters, and returns a channel of quads and a channel of errors. If no format is specified, it defaults to turtle format.
-func Parse(stream io.Reader, options Options) (interfaces.IStream, chan error) {
+func Parse(stream io.Reader, options ParserOptions) (interfaces.IStream, chan error) {
 	if options.Format == "" {
 		data, errChan := turtle.Parse(stream, turtle.Options{BaseIRI: options.BaseIRI})
 		newErrChan := make(chan error, 1)
