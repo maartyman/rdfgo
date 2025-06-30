@@ -2,6 +2,37 @@
 ## [Unreleased]
 
 
+<a name="v0.1.0"></a>
+## [v0.1.0] - 2025-06-30
+### Chore
+- development environment improvements
+- add turtle evaluation tests
+- Add documentation
+- add Store performanc check
+- refactoring, minor changes none breaking
+- add performance eval + update README, makefile, and commitmsg
+- fix linting issues
+- Update lock file
+- **release:** bump to v0.1.0
+- **release:** bump to v0.0.3
+- **turtleParser:** performance fixes
+
+### Feat
+- added the n-quad and n-triples writers
+- Add simple performance evel
+- Add turtle parser
+- Add nquad parser
+
+### Fix
+- data factory should keep blank node counter
+- remove stray println
+- literal can't have language and datatype set
+- Parser return type should be IStream
+- testing with coverage
+- **nquadParser:** Add data factory support and fix unescape
+- **turtleParser:** Add data facory + fix unescape + fix pefixed datatypes
+
+
 <a name="v0.0.3"></a>
 ## [v0.0.3] - 2024-09-23
 ### Chore
@@ -38,7 +69,8 @@
 - **developer-experience:** Add commit formatting
 
 
-[Unreleased]: https://github.com/maartyman/rdfgo/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/maartyman/rdfgo/compare/v0.1.0...HEAD
+[v0.1.0]: https://github.com/maartyman/rdfgo/compare/v0.0.3...v0.1.0
 [v0.0.3]: https://github.com/maartyman/rdfgo/compare/v0.0.2...v0.0.3
 [v0.0.2]: https://github.com/maartyman/rdfgo/compare/v0.0.1...v0.0.2
 [v0.0.1]: https://github.com/maartyman/rdfgo/compare/v0.0.0...v0.0.1
